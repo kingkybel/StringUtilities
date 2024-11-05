@@ -27,7 +27,7 @@ message("Linux version is '${LINUX_VERSION}'")
 
 set(COVERAGE_COMPILER_FLAGS "-g -O0 -fno-default-inline --coverage -fprofile-abs-path -fprofile-arcs -fno-inline -fno-inline-small-functions -ftest-coverage -lgcov" CACHE INTERNAL "")
 
-set(CMAKE_CXX_FLAGS "-rdynamic -Wall -Werror -DBOOST_ALLOW_DEPRECATED_HEADERS -DBOOST_BIND_GLOBAL_PLACEHOLDERS" CACHE STRING "Default C++ compiler flags")
+set(CMAKE_CXX_FLAGS "-rdynamic -Wall -Werror" CACHE STRING "Default C++ compiler flags")
 set(CMAKE_CXX_FLAGS_DEBUG "-g" CACHE STRING "g++ debug flags")
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-g -O2" CACHE STRING "g++ rel+dbg flags")
 set(CMAKE_CXX_FLAGS_COVERAGE "${COVERAGE_COMPILER_FLAGS}" CACHE STRING "g++ coverage flags." FORCE)
@@ -42,17 +42,12 @@ set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
 set(BUILD_SHARED_LIBS OFF)
 set(CMAKE_EXE_LINKER_FLAGS "-static")
 
-find_package(Boost 1.86.0 REQUIRED)
-message("Boost_INCLUDE_DIRS '${Boost_INCLUDE_DIRS}'")
-
 include_directories(
-        ${Boost_INCLUDE_DIRS}
         BEFORE SYSTEM ${CMAKE_SOURCE_DIR}/include
         system
 )
 link_directories(
         /usr/local/lib
-        ${Boost_LIBRARY_DIR_RELEASE}
         system
 )
 
