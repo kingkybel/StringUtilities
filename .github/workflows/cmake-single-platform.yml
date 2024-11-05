@@ -53,6 +53,14 @@ jobs:
           sudo cp -R ~/gtest/* /usr
         fi
 
+    - name: Install DebugTrace
+      run: |
+        mkdir -p ${{github.workspace}}/DebugTrace/build
+        cd ${{github.workspace}}/DebugTrace/build
+        cmake -Wno-dev -DCMAKE_INSTALL_PREFIX=/usr -S ..
+        cmake --build . --parallel $(nproc)
+        sudo cmake --install .
+
     - name: Install TypeTraits
       run: |
         mkdir -p ${{github.workspace}}/TypeTraits/build

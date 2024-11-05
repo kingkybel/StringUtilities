@@ -4,3 +4,6 @@
 [submodule "ContainerConvert"]
 	path = ContainerConvert
 	url = git@github.com:kingkybel/ContainerConvert.git
+[submodule "DebugTrace"]
+	path = DebugTrace
+	url = git@github.com:kingkybel/DebugTrace.git
