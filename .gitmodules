@@ -7,3 +7,6 @@
 [submodule "DebugTrace"]
 	path = DebugTrace
 	url = git@github.com:kingkybel/DebugTrace.git
+[submodule "cmake-common"]
+	path = cmake-common
+	url = git@github.com:kingkybel/CMakeCommon.git

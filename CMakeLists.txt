@@ -5,37 +5,27 @@ project(StringUtilities
         HOMEPAGE_URL "https://github.com/kingkybel/StringUtilities")
 
 include(GNUInstallDirs)
+include(CTest)
 
-if (CMAKE_BUILD_TYPE STREQUAL "")
-    set(CMAKE_BUILD_TYPE RelWithDebInfo)
+set(DKYB_CMAKE_COMMON_LOCAL_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake-common" CACHE PATH "Path to local dkyb cmake-common checkout")
+set(DKYB_CMAKE_COMMON_GIT_REPOSITORY "https://github.com/kingkybel/cmake-common.git" CACHE STRING "dkyb cmake-common repository")
+set(DKYB_CMAKE_COMMON_GIT_TAG "v0.1.0" CACHE STRING "Pinned dkyb cmake-common tag")
+
+set(_dkyb_common_module "${DKYB_CMAKE_COMMON_LOCAL_PATH}/cmake/DkybBuildSettings.cmake")
+if (EXISTS "${_dkyb_common_module}")
+    include("${_dkyb_common_module}")
+else ()
+    include(FetchContent)
+    FetchContent_Declare(
+            dkyb_cmake_common
+            GIT_REPOSITORY "${DKYB_CMAKE_COMMON_GIT_REPOSITORY}"
+            GIT_TAG "${DKYB_CMAKE_COMMON_GIT_TAG}"
+    )
+    FetchContent_MakeAvailable(dkyb_cmake_common)
+    include("${dkyb_cmake_common_SOURCE_DIR}/cmake/DkybBuildSettings.cmake")
 endif ()
 
-message("BUILD TYPE " ${CMAKE_BUILD_TYPE})
-set(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE} CACHE STRING "Debug Release RelWithDebInfo MinSizeRel Coverage")
-set(DISPLAY_BUILD_TYPE ${CMAKE_BUILD_TYPE})
-set(CMAKE_CONFIGURATION_TYPES "Debug;Release;RelWithDebInfo;MinSizeRel;Coverage" CACHE STRING "Configs" FORCE)
-
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE}/bin)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE}/lib)
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE}/lib)
-
-execute_process(
-        COMMAND bash -c "printf \"%s\" $(cat /etc/os-release | grep -E \"^ID=[^\\n]*|^VERSION_ID=[^\\n]*\" | cut -f2 -d= | tr -d '\"')"
-        OUTPUT_VARIABLE LINUX_VERSION
-)
-message("Linux version is '${LINUX_VERSION}'")
-
-set(COVERAGE_COMPILER_FLAGS "-g -O0 -fno-default-inline --coverage -fprofile-abs-path -fprofile-arcs -fno-inline -fno-inline-small-functions -ftest-coverage -lgcov" CACHE INTERNAL "")
-
-set(CMAKE_CXX_FLAGS "-rdynamic -Wall -Werror" CACHE STRING "Default C++ compiler flags")
-set(CMAKE_CXX_FLAGS_DEBUG "-g" CACHE STRING "g++ debug flags")
-set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-g -O2" CACHE STRING "g++ rel+dbg flags")
-set(CMAKE_CXX_FLAGS_COVERAGE "${COVERAGE_COMPILER_FLAGS}" CACHE STRING "g++ coverage flags." FORCE)
-set(CMAKE_CXX_FLAGS_RELEASE "-O2" CACHE STRING "g++ release flags")
-set(CMAKE_CXX_EXTENSIONS OFF)
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-set(CMAKE_CXX_STANDARD 23)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+dkyb_apply_common_settings()
 
 set(CMAKE_FIND_LIBRARY_PREFIXES lib)
 set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
@@ -62,7 +52,9 @@ target_include_directories(
 
 target_compile_features(DirectedGraphs INTERFACE cxx_std_23)
 
-add_subdirectory(test)
+if(BUILD_TESTING)
+    add_subdirectory(test)
+endif()
 
 set(CMAKE_CXX_CLANG_TIDY "clang-tidy;-checks=* -p ${CMAKE_SOURCE_DIR}/build")
 

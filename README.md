@@ -1,45 +1,60 @@
 # StringUtilities
 
-A header-only template library with string utilities.
+`StringUtilities` is a header-only C++23 utility library for string handling and stream-friendly formatting of values and STL containers.
 
-# Installation
+## What this repository provides
 
-The installation and build is tested on *ubuntu24.04 LTS*
+- String helpers in `include/stringutil.h`:
+  - `toLower`, `toUpper`
+  - `trim`, `trimLeft`, `trimRight`, `strip`
+  - `replaceChar`, `replaceCharLeft`, `replaceCharRight`
+  - `splitIntoVector`, `splitIntoSet`
+  - `scanBoolString`, `classifyNumberString`
+- Case-insensitive string and traits in `include/ci_string.h` (`util::ci_string` and variants).
+- Generic stream decoration/formatting in `include/decorator.h` and conversion helpers in `include/to_string.h` (`toString`, `toWString`).
+- Bracket presets for formatted output in `include/brackets.h`.
 
-## dependencies
+## Build and test
 
-googletest:
+The project uses CMake and builds tests with GoogleTest.
 
-```bash
-# create a directory where you like to clone googletest, eg: ~/Repos and change to it
-mkdir ~/Repos ; cd ~/Repos
-git clone https://github.com/google/googletest.git
-cd googletest
-mkdir build
-cd build
-mkdir build
-cmake ..
-make -j $(nproc)
-sudo make install
-```
-
-## use cmake to install the header-only library
+### 1. Configure
 
 ```bash
-# change the next line to change the install prefix to your liking
-INSTALL_PREFIX=/usr
-mkdir ./build
-cd build
-cmake -Wno-dev -DCMAKE_INSTALL_PREFIX=${INSTALL_PREFIX} ..
-cmake --build . --parallel $(nproc)
-sudo cmake --install .
+cmake -S . -B build
 ```
 
-This will install the headers from the include-folder to `${INSTALL_PREFIX}/dkyb`
+### 2. Build
 
-To use the headers in your code, make sure that ${INSTALL_PREFIX} is in the include directories of your project.
-Include the file in your code e.g:
-
-```c++
-#include <dkyb/to_string.h>
+```bash
+cmake --build build --parallel "$(nproc)"
 ```
+
+### 3. Run unit tests
+
+```bash
+ctest --test-dir build --output-on-failure
+```
+
+If your environment does not provide a packaged GoogleTest installation, install/build GoogleTest first and make it discoverable to CMake.
+
+## Install headers
+
+```bash
+cmake -S . -B build -DCMAKE_INSTALL_PREFIX=/usr
+cmake --build build --parallel "$(nproc)"
+sudo cmake --install build
+```
+
+Headers are installed under `${CMAKE_INSTALL_PREFIX}/include/dkyb`.
+
+## Recent changes
+
+- Added `cmake-common` as a submodule and migrated root build settings to shared `dkyb_apply_common_settings()`.
+- Root `CMakeLists.txt` now includes `CTest` and gates test directory inclusion with `BUILD_TESTING`.
+- Expanded unit-test coverage with additional tests for:
+  - boolean parsing
+  - inclusive substring bounds
+  - split edge-cases (empty segments, repeated separators)
+  - directional replacement helpers
+  - numeric string classification
