@@ -1,3 +1,5 @@
+![StringUtilities banner](./assets/banners/string_utilities_banner.svg)
+
 # StringUtilities
 
 `StringUtilities` is a header-only C++23 utility library for string handling and stream-friendly formatting of values and STL containers.
@@ -58,3 +60,9 @@ Headers are installed under `${CMAKE_INSTALL_PREFIX}/include/dkyb`.
   - split edge-cases (empty segments, repeated separators)
   - directional replacement helpers
   - numeric string classification
+  
+## Powered by
+Reduce the smells, keep on top of code-quality. Sonar Qube is run on every push to the `main` branch on GitHub.
+
+
+[![SonarQubeCloud](assets/icons/logo-sonarqube-cloud-small.png)](https://sonarcloud.io/project/overview?id=kingkybel)
