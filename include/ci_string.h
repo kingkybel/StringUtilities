@@ -107,16 +107,31 @@ template <typename CharT_ = char> struct ci_char_traits : public std::char_trait
             return s2 == nullptr ? 0 : -1;
         }
 
-        long i = 0;
+        size_t i = 0;
 
-        while ((i < (long)n) && (*s1) && (*s2) && (eq(*s1, *s2)))
+        while ((i < n) && (*s1 != CharT_{0}) && (*s2 != CharT_{0}) && (eq(*s1, *s2)))
         {
             s1++;
             s2++;
             i++;
         }
 
-        return i == (long)n ? 0 : lt(*s1, *s2) ? (-i - 1) : (eq(*s1, *s2) ? 0 : i + 1);
+        if (i == n)
+        {
+            return 0;
+        }
+
+        if (lt(*s1, *s2))
+        {
+            return -static_cast<int>(i) - 1;
+        }
+
+        if (eq(*s1, *s2))
+        {
+            return 0;
+        }
+
+        return static_cast<int>(i) + 1;
     }
 
     /**
@@ -124,14 +139,14 @@ template <typename CharT_ = char> struct ci_char_traits : public std::char_trait
      * @param s char-pointer to a string
      * @param n length of the string
      * @param c character to search for
-     * @return const char* pointer to the first occurrence of c in the string s, or nullptr if it cannot be found
+     * @return const CharT_* pointer to the first occurrence of c in the string s, or nullptr if it cannot be found
      */
-    static char const *find(CharT_ const *s, int n, char c)
+    static CharT_ const *find(CharT_ const *s, size_t n, CharT_ const &c)
     {
         CharT_ const *reval = nullptr;
         while (n-- > 0 && reval == nullptr)
         {
-            if (towupper(wchar_t{*s}) == towupper(wchar_t{c}))
+            if (toUpperChar(*s) == toUpperChar(c))
             {
                 reval = s;
             }
@@ -171,15 +186,93 @@ using ci_u16string = std::basic_string<char16_t, ci_char_traits<char16_t>, std::
 using ci_u32string = std::basic_string<char32_t, ci_char_traits<char32_t>, std::allocator<char32_t>>;
 #endif
 
+/**
+ * @brief Generic Out-stream - << operator for util::ci_string's.
+ * @param os the ostream for output
+ * @param str the util::ci_string to output
+ * @return the modified stream
+ */
+inline std::ostream &operator<<(std::ostream &os, ci_string const &str)
+{
+    os << str.c_str();
+
+    return os;
+}
+
+/**
+ * @brief Generic Out-stream - << operator for util::ci_wstring's.
+ * @param os the ostream for output
+ * @param str the util::ci_wstring to output
+ * @return the modified stream
+ */
+inline std::wostream &operator<<(std::wostream &os, ci_wstring const &str)
+{
+    os << str.c_str();
+
+    return os;
+}
+
+#ifdef _GLIBCXX_USE_CHAR8_T
+
+/**
+ * @brief Generic Out-stream - << operator for util::ci_u8tring's.
+ *
+ * @param os the ostream for output
+ * @param str the util::ci_u8string to output
+ *
+ * @return the modified stream
+ */
+inline std::basic_ostream<char8_t, std::char_traits<char8_t>> &
+    operator<<(std::basic_ostream<char8_t, std::char_traits<char8_t>> &os, ci_u8string const &s)
+{
+    os << s.c_str();
+
+    return os;
+}
+#endif
+
+#if __cplusplus >= 201'103L
+
+/**
+ * @brief Generic Out-stream - << operator for util::ci_u16tring's.
+ *
+ * @param os the ostream for output
+ * @param str the util::ci_u16string to output
+ *
+ * @return the modified stream
+ */
+inline std::basic_ostream<char16_t, std::char_traits<char16_t>> &
+    operator<<(std::basic_ostream<char16_t, std::char_traits<char16_t>> &os, ci_u16string const &s)
+{
+    os << s.c_str();
+
+    return os;
+}
+
+/**
+ * @brief Generic Out-stream - << operator for util::ci_u32tring's.
+ *
+ * @param os the ostream for output
+ * @param str the util::ci_u32string to output
+ *
+ * @return the modified stream
+ */
+inline std::basic_ostream<char32_t, std::char_traits<char32_t>> &
+    operator<<(std::basic_ostream<char32_t, std::char_traits<char32_t>> &os, ci_u32string const &s)
+{
+    os << s.c_str();
+
+    return os;
+}
+#endif
+
 }; // namespace util
 
-namespace std
-{
 /**
  * @brief Overload the standard hash function for case insensitive strings to
  * enable ci_strings as elements in hash containers
  */
-template <> struct hash<util::ci_string>
+template <> struct std::hash<util::ci_string>
 {
     std::size_t operator()(util::ci_string const &s) const
     {
@@ -194,7 +287,7 @@ template <> struct hash<util::ci_string>
  * @brief Overload the standard hash function for wide case insensitive strings to
  * enable ci_wstrings as elements in hash containers
  */
-template <> struct hash<util::ci_wstring>
+template <> struct std::hash<util::ci_wstring>
 {
     std::size_t operator()(util::ci_wstring const &s) const
     {
@@ -204,39 +297,13 @@ template <> struct hash<util::ci_wstring>
     }
 };
 
-/**
- * @brief Generic Out-stream - &lt;&lt; operator for util::ci_string's.
- * @param os the ostream for output
- * @param str the util::ci_string to output
- * @return the modified stream
- */
-inline std::ostream &operator<<(std::ostream &os, util::ci_string const &str)
-{
-    os << str.c_str();
-
-    return os;
-}
-
-/**
- * @brief Generic Out-stream - &lt;&lt; operator for util::ci_wstring's.
- * @param os the ostream for output
- * @param str the util::ci_wstring to output
- * @return the modified stream
- */
-inline std::wostream &operator<<(std::wostream &os, util::ci_wstring const &str)
-{
-    os << str.c_str();
-
-    return os;
-}
-
 #ifdef _GLIBCXX_USE_CHAR8_T
 
 /**
  * @brief Overload the standard hash function for wide case insensitive strings to
  * enable ci_u8strings as elements in hash containers
  */
-template <> struct hash<util::ci_u8string>
+template <> struct std::hash<util::ci_u8string>
 {
     std::size_t operator()(util::ci_u8string const &s) const
     {
@@ -246,21 +313,6 @@ template <> struct hash<util::ci_u8string>
     }
 };
 
-/**
- * @brief Generic Out-stream - &lt;&lt; operator for util::ci_u8tring's.
- *
- * @param os the ostream for output
- * @param str the util::ci_u8string to output
- *
- * @return the modified stream
- */
-inline std::basic_ostream<char8_t, std::char_traits<char8_t>> &
-    operator<<(std::basic_ostream<char8_t, std::char_traits<char8_t>> &os, util::ci_u8string const &s)
-{
-    os << s.c_str();
-
-    return os;
-}
 #endif
 
 #if __cplusplus >= 201'103L
@@ -269,7 +321,7 @@ inline std::basic_ostream<char8_t, std::char_traits<char8_t>> &
  * @brief Overload the standard hash function for wide case insensitive strings to
  * enable ci_u16strings as elements in hash containers
  */
-template <> struct hash<util::ci_u16string>
+template <> struct std::hash<util::ci_u16string>
 {
     std::size_t operator()(util::ci_u16string const &s) const
     {
@@ -280,26 +332,10 @@ template <> struct hash<util::ci_u16string>
 };
 
 /**
- * @brief Generic Out-stream - &lt;&lt; operator for util::ci_u16tring's.
- *
- * @param os the ostream for output
- * @param str the util::ci_u16string to output
- *
- * @return the modified stream
- */
-inline std::basic_ostream<char16_t, std::char_traits<char16_t>> &
-    operator<<(std::basic_ostream<char16_t, std::char_traits<char16_t>> &os, util::ci_u16string const &s)
-{
-    os << s.c_str();
-
-    return os;
-}
-
-/**
  * @brief Overload the standard hash function for wide case insensitive strings to
  * enable ci_u32strings as elements in hash containers
  */
-template <> struct hash<util::ci_u32string>
+template <> struct std::hash<util::ci_u32string>
 {
     std::size_t operator()(util::ci_u32string const &s) const
     {
@@ -308,23 +344,7 @@ template <> struct hash<util::ci_u32string>
         return hasher(strLower);
     }
 };
-
-/**
- * @brief Generic Out-stream - &lt;&lt; operator for util::ci_u32tring's.
- *
- * @param os the ostream for output
- * @param str the util::ci_u32string to output
- *
- * @return the modified stream
- */
-inline std::basic_ostream<char32_t, std::char_traits<char32_t>> &
-    operator<<(std::basic_ostream<char32_t, std::char_traits<char32_t>> &os, util::ci_u32string const &s)
-{
-    os << s.c_str();
-
-    return os;
-}
 #endif
-}; // namespace std
+
 
 #endif // NS_UTIL_CI_STRING_H_INCLUDED

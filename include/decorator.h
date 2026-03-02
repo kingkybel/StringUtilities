@@ -332,13 +332,14 @@ template <typename CharT_ = char> struct intFmt
 };
 
 /**
- * @brief This template class facilitates to configure how objects are streamed on output streams.
+ * @brief This template class facilitates configuration how objects are streamed on output streams.
  *        This is a singleton for each combination of the template parameters CharT_ and TraitsT_
  *
  * @tparam CharT_ char-type
  * @tparam TraitsT_ string-traits
  */
-template <typename CharT_ = char, typename TraitsT_ = std::char_traits<CharT_>> class decorator
+template <typename CharT_ = char, typename TraitsT_ = std::char_traits<CharT_>>
+class decorator // NOSONAR S1228: This decorator class needs all it member functions
 {
   public:
     using StringT_     = std::basic_string<CharT_, TraitsT_>;
@@ -474,18 +475,18 @@ template <typename CharT_ = char, typename TraitsT_ = std::char_traits<CharT_>> 
     bool initializeIntFormat()
     {
         clearIntFormat();
-
-        setFormat<char>(intFmt<CharT_>{IntBase::as_char});
-        setFormat<char16_t>(intFmt<CharT_>{IntBase::as_char});
-        setFormat<char32_t>(intFmt<CharT_>{IntBase::as_char});
-        setFormat<int8_t>(intFmt<CharT_>{IntBase::hexadecimal});
-        setFormat<int16_t>(intFmt<CharT_>{IntBase::decimal});
-        setFormat<int32_t>(intFmt<CharT_>{IntBase::decimal});
-        setFormat<int64_t>(intFmt<CharT_>{IntBase::decimal});
-        setFormat<uint8_t>(intFmt<CharT_>{IntBase::decimal});
-        setFormat<uint16_t>(intFmt<CharT_>{IntBase::decimal});
-        setFormat<uint32_t>(intFmt<CharT_>{IntBase::decimal});
-        setFormat<uint64_t>(intFmt<CharT_>{IntBase::decimal});
+        using enum IntBase;
+        setFormat<char>(intFmt<CharT_>{as_char});
+        setFormat<char16_t>(intFmt<CharT_>{as_char});
+        setFormat<char32_t>(intFmt<CharT_>{as_char});
+        setFormat<int8_t>(intFmt<CharT_>{hexadecimal});
+        setFormat<int16_t>(intFmt<CharT_>{decimal});
+        setFormat<int32_t>(intFmt<CharT_>{decimal});
+        setFormat<int64_t>(intFmt<CharT_>{decimal});
+        setFormat<uint8_t>(intFmt<CharT_>{decimal});
+        setFormat<uint16_t>(intFmt<CharT_>{decimal});
+        setFormat<uint32_t>(intFmt<CharT_>{decimal});
+        setFormat<uint64_t>(intFmt<CharT_>{decimal});
 
         return true;
     }
@@ -498,10 +499,10 @@ template <typename CharT_ = char, typename TraitsT_ = std::char_traits<CharT_>> 
     bool initializeFloatFormat()
     {
         clearFloatFormat();
-
-        setFormat<float>(floatFmt{FloatBase::scientific});
-        setFormat<double>(floatFmt{FloatBase::scientific});
-        setFormat<long double>(floatFmt{FloatBase::scientific});
+        using enum FloatBase;
+        setFormat<float>(floatFmt{scientific});
+        setFormat<double>(floatFmt{scientific});
+        setFormat<long double>(floatFmt{scientific});
 
         return true;
     }
@@ -521,7 +522,10 @@ template <typename CharT_ = char, typename TraitsT_ = std::char_traits<CharT_>> 
      */
     static decorator &instance()
     {
-        static bool initialized = decorator::theInstance.initialize();
+        if (static bool initialized = decorator::theInstance.initialize(); !initialized)
+        {
+            throw std::runtime_error("Could not get instance of decorator"); // NOSONAR
+        }
         return decorator::theInstance;
     }
 
@@ -582,7 +586,7 @@ template <typename CharT_ = char, typename TraitsT_ = std::char_traits<CharT_>> 
         std::string const      &right
     )
     {
-        BracketsType bracket{std::string{key}, left, inner, right};
+        BracketsType bracket{key, left, inner, right};
 
         setBracketForKey(std::string{key}, bracket);
     }
@@ -598,10 +602,10 @@ template <typename CharT_ = char, typename TraitsT_ = std::char_traits<CharT_>> 
      */
     template <typename T>
     void setBracketForObject(
-        T const           &object,
-        std::string const &left,
-        std::string const &inner,
-        std::string const &right
+        [[maybe_unused]] T const &object,
+        std::string const        &left,
+        std::string const        &inner,
+        std::string const        &right
     )
     {
         std::string const type = typeString<T>();
@@ -618,7 +622,7 @@ template <typename CharT_ = char, typename TraitsT_ = std::char_traits<CharT_>> 
      * @param defaultKey otherwise the default-key
      * @return BracketsType the bracket for the object
      */
-    template <typename T> BracketsType getBracket(T const &object, std::string_view const &defaultKey)
+    template <typename T> BracketsType getBracket([[maybe_unused]] T const &object, std::string_view const &defaultKey)
     {
         auto found = type2brackets_.find(typeString<T>());
 

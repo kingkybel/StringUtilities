@@ -31,11 +31,29 @@
 #include <map>
 #include <set>
 #include <string>
+#include <string_view>
 #include <tuple>
 #include <vector>
 
 using namespace std;
 using namespace util;
+
+struct string_hash
+{
+    using is_transparent = void;
+    size_t operator()(char const *s) const
+    {
+        return std::hash<std::string_view>{}(s);
+    }
+    size_t operator()(std::string_view s) const
+    {
+        return std::hash<std::string_view>{}(s);
+    }
+    size_t operator()(std::string const &s) const
+    {
+        return std::hash<std::string>{}(s);
+    }
+};
 
 class DecoratorTest : public ::testing::Test
 {
@@ -207,7 +225,7 @@ TEST_F(DecoratorTest, multi_container_decoration_test)
     auto ms = multiset<string, less<>>{"abc", "def", "ghi", "def"};
     ASSERT_EQ(toString(ms), "{#\"abc\",\"def\",\"def\",\"ghi\"#}");
 
-    auto           ums = unordered_multiset<string>{"abc", "def", "ghi", "def"};
+    auto           ums = unordered_multiset<string, string_hash, equal_to<>>{"abc", "def", "ghi", "def"};
     vector<string> ums_els{"\"abc\"", "\"def\"", "\"def\"", "\"ghi\""};
     for (auto const &s: ums_els)
     {
