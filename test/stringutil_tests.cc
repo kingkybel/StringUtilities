@@ -30,6 +30,7 @@
 #include <dkyb/container_convert.h>
 #include <gtest/gtest.h>
 #include <iostream>
+#include <source_location>
 #include <string>
 #include <utility>
 
@@ -50,25 +51,26 @@ class StringUtilTest : public ::testing::Test
     }
 };
 
-template <typename T_>
-struct SR
+template <typename T_> struct TestExpect
 {
-    SR(T_            source,
-       T_            tp,
-       StripTrimMode m,
-       T_            modChars,
-       char          c,
-       T_            result,
-       size_t        line,
-       bool          differentInsensitive = false,
-       const T_& resultInsensitive        = "")
+    TestExpect(
+        T_                   source,
+        T_                   tp,
+        StripTrimMode        m,
+        T_                   modChars,
+        char                 c,
+        T_                   result,
+        std::source_location loc    = std::source_location::current(),
+        bool differentInsensitive   = false,
+        const T_& resultInsensitive = ""
+    )
         : source_(std::move(source))
         , tp_(std::move(tp))
         , m_(m)
         , modChars_(std::move(modChars))
         , c_(c)
         , result_(std::move(result))
-        , line_(line)
+        , line_(loc.line())
         , differentInsensitive_(differentInsensitive)
         , resultInsensitive_(differentInsensitive ? resultInsensitive : result_)
     {
@@ -121,144 +123,405 @@ struct SR
     T_            resultInsensitive_;
 };
 
-template <typename T_>
-void util_string_mod_testT()
+template <typename T_> void util_string_mod_testT()
 {
-    typedef SR<T_> SR;
-    SR             modResults[] = {
+    using TestExpect_T        = TestExpect<T_>;
+    TestExpect_T modResults[] = {
+
         // trivial
-        SR("", "trim", StripTrimMode::ALL, "\n\t \r", char(0), "", __LINE__),
-        SR("", "trim", StripTrimMode::LEFT, "\n\t \r", char(0), "", __LINE__),
-        SR("", "trim", StripTrimMode::RIGHT, "\n\t \r", char(0), "", __LINE__),
-        SR(" ", "trim", StripTrimMode::ALL, "\n\t \r", char(0), "", __LINE__),
-        SR(" ", "trim", StripTrimMode::LEFT, "\n\t \r", char(0), "", __LINE__),
-        SR(" ", "trim", StripTrimMode::RIGHT, "\n\t \r", char(0), "", __LINE__),
-        SR("\t", "trim", StripTrimMode::ALL, "\n\t \r", char(0), "", __LINE__),
-        SR("\t", "trim", StripTrimMode::LEFT, "\n\t \r", char(0), "", __LINE__),
-        SR("\t", "trim", StripTrimMode::RIGHT, "\n\t \r", char(0), "", __LINE__),
-        SR("\n", "trim", StripTrimMode::ALL, "\n\t \r", char(0), "", __LINE__),
-        SR("\n", "trim", StripTrimMode::LEFT, "\n\t \r", char(0), "", __LINE__),
-        SR("\n", "trim", StripTrimMode::RIGHT, "\n\t \r", char(0), "", __LINE__),
+        TestExpect_T("", "trim", StripTrimMode::ALL, "\n\t \r", char(0), "", std::source_location::current()),
+        TestExpect_T("", "trim", StripTrimMode::LEFT, "\n\t \r", char(0), "", std::source_location::current()),
+        TestExpect_T("", "trim", StripTrimMode::RIGHT, "\n\t \r", char(0), "", std::source_location::current()),
+        TestExpect_T(" ", "trim", StripTrimMode::ALL, "\n\t \r", char(0), "", std::source_location::current()),
+        TestExpect_T(" ", "trim", StripTrimMode::LEFT, "\n\t \r", char(0), "", std::source_location::current()),
+        TestExpect_T(" ", "trim", StripTrimMode::RIGHT, "\n\t \r", char(0), "", std::source_location::current()),
+        TestExpect_T("\t", "trim", StripTrimMode::ALL, "\n\t \r", char(0), "", std::source_location::current()),
+        TestExpect_T("\t", "trim", StripTrimMode::LEFT, "\n\t \r", char(0), "", std::source_location::current()),
+        TestExpect_T("\t", "trim", StripTrimMode::RIGHT, "\n\t \r", char(0), "", std::source_location::current()),
+        TestExpect_T("\n", "trim", StripTrimMode::ALL, "\n\t \r", char(0), "", std::source_location::current()),
+        TestExpect_T("\n", "trim", StripTrimMode::LEFT, "\n\t \r", char(0), "", std::source_location::current()),
+        TestExpect_T("\n", "trim", StripTrimMode::RIGHT, "\n\t \r", char(0), "", std::source_location::current()),
 
-        SR("", "strip", StripTrimMode::ALL, "\n\t \r", char(0), "", __LINE__),
-        SR("", "strip", StripTrimMode::LEFT, "\n\t \r", char(0), "", __LINE__),
-        SR("", "strip", StripTrimMode::RIGHT, "\n\t \r", char(0), "", __LINE__),
-        SR(" ", "strip", StripTrimMode::ALL, "\n\t \r", char(0), "", __LINE__),
-        SR(" ", "strip", StripTrimMode::LEFT, "\n\t \r", char(0), "", __LINE__),
-        SR(" ", "strip", StripTrimMode::RIGHT, "\n\t \r", char(0), "", __LINE__),
-        SR("\t", "strip", StripTrimMode::ALL, "\n\t \r", char(0), "", __LINE__),
-        SR("\t", "strip", StripTrimMode::LEFT, "\n\t \r", char(0), "", __LINE__),
-        SR("\t", "strip", StripTrimMode::RIGHT, "\n\t \r", char(0), "", __LINE__),
-        SR("\n", "strip", StripTrimMode::ALL, "\n\t \r", char(0), "", __LINE__),
-        SR("\n", "strip", StripTrimMode::LEFT, "\n\t \r", char(0), "", __LINE__),
-        SR("\n", "strip", StripTrimMode::RIGHT, "\n\t \r", char(0), "", __LINE__),
+        TestExpect_T("", "strip", StripTrimMode::ALL, "\n\t \r", char(0), "", std::source_location::current()),
+        TestExpect_T("", "strip", StripTrimMode::LEFT, "\n\t \r", char(0), "", std::source_location::current()),
+        TestExpect_T("", "strip", StripTrimMode::RIGHT, "\n\t \r", char(0), "", std::source_location::current()),
+        TestExpect_T(" ", "strip", StripTrimMode::ALL, "\n\t \r", char(0), "", std::source_location::current()),
+        TestExpect_T(" ", "strip", StripTrimMode::LEFT, "\n\t \r", char(0), "", std::source_location::current()),
+        TestExpect_T(" ", "strip", StripTrimMode::RIGHT, "\n\t \r", char(0), "", std::source_location::current()),
+        TestExpect_T("\t", "strip", StripTrimMode::ALL, "\n\t \r", char(0), "", std::source_location::current()),
+        TestExpect_T("\t", "strip", StripTrimMode::LEFT, "\n\t \r", char(0), "", std::source_location::current()),
+        TestExpect_T("\t", "strip", StripTrimMode::RIGHT, "\n\t \r", char(0), "", std::source_location::current()),
+        TestExpect_T("\n", "strip", StripTrimMode::ALL, "\n\t \r", char(0), "", std::source_location::current()),
+        TestExpect_T("\n", "strip", StripTrimMode::LEFT, "\n\t \r", char(0), "", std::source_location::current()),
+        TestExpect_T("\n", "strip", StripTrimMode::RIGHT, "\n\t \r", char(0), "", std::source_location::current()),
 
-        SR("", "replace", StripTrimMode::ALL, "\n\t \r", '#', "", __LINE__),
-        SR("", "replace", StripTrimMode::LEFT, "\n\t \r", '#', "", __LINE__),
-        SR("", "replace", StripTrimMode::RIGHT, "\n\t \r", '#', "", __LINE__),
-        SR(" ", "replace", StripTrimMode::ALL, "\n\t \r", '#', "#", __LINE__, false),
-        SR(" ", "replace", StripTrimMode::LEFT, "\n\t \r", '#', "#", __LINE__),
-        SR(" ", "replace", StripTrimMode::RIGHT, "\n\t \r", '#', "#", __LINE__),
-        SR("\t", "replace", StripTrimMode::ALL, "\n\t \r", '#', "#", __LINE__),
-        SR("\t", "replace", StripTrimMode::LEFT, "\n\t \r", '#', "#", __LINE__),
-        SR("\t", "replace", StripTrimMode::RIGHT, "\n\t \r", '#', "#", __LINE__),
-        SR("\n", "replace", StripTrimMode::ALL, "\n\t \r", '#', "#", __LINE__),
-        SR("\n", "replace", StripTrimMode::LEFT, "\n\t \r", '#', "#", __LINE__),
-        SR("\n", "replace", StripTrimMode::RIGHT, "\n\t \r", '#', "#", __LINE__),
+        TestExpect_T("", "replace", StripTrimMode::ALL, "\n\t \r", '#', "", std::source_location::current()),
+        TestExpect_T("", "replace", StripTrimMode::LEFT, "\n\t \r", '#', "", std::source_location::current()),
+        TestExpect_T("", "replace", StripTrimMode::RIGHT, "\n\t \r", '#', "", std::source_location::current()),
+        TestExpect_T(" ", "replace", StripTrimMode::ALL, "\n\t \r", '#', "#", std::source_location::current(), false),
+        TestExpect_T(" ", "replace", StripTrimMode::LEFT, "\n\t \r", '#', "#", std::source_location::current()),
+        TestExpect_T(" ", "replace", StripTrimMode::RIGHT, "\n\t \r", '#', "#", std::source_location::current()),
+        TestExpect_T("\t", "replace", StripTrimMode::ALL, "\n\t \r", '#', "#", std::source_location::current()),
+        TestExpect_T("\t", "replace", StripTrimMode::LEFT, "\n\t \r", '#', "#", std::source_location::current()),
+        TestExpect_T("\t", "replace", StripTrimMode::RIGHT, "\n\t \r", '#', "#", std::source_location::current()),
+        TestExpect_T("\n", "replace", StripTrimMode::ALL, "\n\t \r", '#', "#", std::source_location::current()),
+        TestExpect_T("\n", "replace", StripTrimMode::LEFT, "\n\t \r", '#', "#", std::source_location::current()),
+        TestExpect_T("\n", "replace", StripTrimMode::RIGHT, "\n\t \r", '#', "#", std::source_location::current()),
 
         // trivial case-dependent
-        SR("", "trim", StripTrimMode::ALL, "abc", char(0), "", __LINE__, false, ""),
-        SR("", "trim", StripTrimMode::LEFT, "abc", char(0), "", __LINE__, false, ""),
-        SR("", "trim", StripTrimMode::RIGHT, "abc", char(0), "", __LINE__, false, ""),
-        SR("a", "trim", StripTrimMode::ALL, "abc", char(0), "", __LINE__, false, ""),
-        SR("a", "trim", StripTrimMode::LEFT, "abc", char(0), "", __LINE__, false, ""),
-        SR("a", "trim", StripTrimMode::RIGHT, "abc", char(0), "", __LINE__, false, ""),
-        SR("b", "trim", StripTrimMode::ALL, "abc", char(0), "", __LINE__, false, ""),
-        SR("b", "trim", StripTrimMode::LEFT, "abc", char(0), "", __LINE__, false, ""),
-        SR("b", "trim", StripTrimMode::RIGHT, "abc", char(0), "", __LINE__, false, ""),
-        SR("c", "trim", StripTrimMode::ALL, "abc", char(0), "", __LINE__, false, ""),
-        SR("c", "trim", StripTrimMode::LEFT, "abc", char(0), "", __LINE__, false, ""),
-        SR("c", "trim", StripTrimMode::RIGHT, "abc", char(0), "", __LINE__, false, ""),
-        SR("A", "trim", StripTrimMode::ALL, "abc", char(0), "A", __LINE__, true, ""),
-        SR("A", "trim", StripTrimMode::LEFT, "abc", char(0), "A", __LINE__, true, ""),
-        SR("A", "trim", StripTrimMode::RIGHT, "abc", char(0), "A", __LINE__, true, ""),
-        SR("B", "trim", StripTrimMode::ALL, "abc", char(0), "B", __LINE__, true, ""),
-        SR("B", "trim", StripTrimMode::LEFT, "abc", char(0), "B", __LINE__, true, ""),
-        SR("B", "trim", StripTrimMode::RIGHT, "abc", char(0), "B", __LINE__, true, ""),
-        SR("C", "trim", StripTrimMode::ALL, "abc", char(0), "C", __LINE__, true, ""),
-        SR("C", "trim", StripTrimMode::LEFT, "abc", char(0), "C", __LINE__, true, ""),
-        SR("C", "trim", StripTrimMode::RIGHT, "abc", char(0), "C", __LINE__, true, ""),
-
-        SR("", "strip", StripTrimMode::ALL, "abc", char(0), "", __LINE__, false, ""),
-        SR("", "strip", StripTrimMode::LEFT, "abc", char(0), "", __LINE__, false, ""),
-        SR("", "strip", StripTrimMode::RIGHT, "abc", char(0), "", __LINE__, false, ""),
-        SR("a", "strip", StripTrimMode::ALL, "abc", char(0), "", __LINE__, false, ""),
-        SR("a", "strip", StripTrimMode::LEFT, "abc", char(0), "", __LINE__, false, ""),
-        SR("a", "strip", StripTrimMode::RIGHT, "abc", char(0), "", __LINE__, ""),
-        SR("b", "strip", StripTrimMode::ALL, "abc", char(0), "", __LINE__, false, ""),
-        SR("b", "strip", StripTrimMode::LEFT, "abc", char(0), "", __LINE__, false, ""),
-        SR("b", "strip", StripTrimMode::RIGHT, "abc", char(0), "", __LINE__, false, ""),
-        SR("c", "strip", StripTrimMode::ALL, "abc", char(0), "", __LINE__, false, ""),
-        SR("c", "strip", StripTrimMode::LEFT, "abc", char(0), "", __LINE__, false, ""),
-        SR("c", "strip", StripTrimMode::RIGHT, "abc", char(0), "", __LINE__, false, ""),
-        SR("A", "strip", StripTrimMode::ALL, "abc", char(0), "A", __LINE__, true, ""),
-        SR("A", "strip", StripTrimMode::LEFT, "abc", char(0), "A", __LINE__, true, ""),
-        SR("A", "strip", StripTrimMode::RIGHT, "abc", char(0), "A", __LINE__, true, ""),
-        SR("B", "strip", StripTrimMode::ALL, "abc", char(0), "B", __LINE__, true, ""),
-        SR("B", "strip", StripTrimMode::LEFT, "abc", char(0), "B", __LINE__, true, ""),
-        SR("B", "strip", StripTrimMode::RIGHT, "abc", char(0), "B", __LINE__, true, ""),
-        SR("C", "strip", StripTrimMode::ALL, "abc", char(0), "C", __LINE__, true, ""),
-        SR("C", "strip", StripTrimMode::LEFT, "abc", char(0), "C", __LINE__, true, ""),
-        SR("C", "strip", StripTrimMode::RIGHT, "abc", char(0), "C", __LINE__, true, ""),
-
-        SR("", "replace", StripTrimMode::ALL, "abc", '#', "", __LINE__, false, ""),
-        SR("", "replace", StripTrimMode::LEFT, "abc", '#', "", __LINE__, false, ""),
-        SR("", "replace", StripTrimMode::RIGHT, "abc", '#', "", __LINE__, false, ""),
-        SR("a", "replace", StripTrimMode::ALL, "abc", '#', "#", __LINE__, false, "#"),
-        SR("a", "replace", StripTrimMode::LEFT, "abc", '#', "#", __LINE__, false, "#"),
-        SR("a", "replace", StripTrimMode::RIGHT, "abc", '#', "#", __LINE__, false, "#"),
-        SR("b", "replace", StripTrimMode::ALL, "abc", '#', "#", __LINE__, false, "#"),
-        SR("b", "replace", StripTrimMode::LEFT, "abc", '#', "#", __LINE__, false, "#"),
-        SR("b", "replace", StripTrimMode::RIGHT, "abc", '#', "#", __LINE__, false, "#"),
-        SR("c", "replace", StripTrimMode::ALL, "abc", '#', "#", __LINE__, false, "#"),
-        SR("c", "replace", StripTrimMode::LEFT, "abc", '#', "#", __LINE__, false, "#"),
-        SR("c", "replace", StripTrimMode::RIGHT, "abc", '#', "#", __LINE__, false, "#"),
-        SR("A", "replace", StripTrimMode::ALL, "abc", '#', "A", __LINE__, true, "#"),
-        SR("A", "replace", StripTrimMode::LEFT, "abc", '#', "A", __LINE__, true, "#"),
-        SR("A", "replace", StripTrimMode::RIGHT, "abc", '#', "A", __LINE__, true, "#"),
-        SR("B", "replace", StripTrimMode::ALL, "abc", '#', "B", __LINE__, true, "#"),
-        SR("B", "replace", StripTrimMode::LEFT, "abc", '#', "B", __LINE__, true, "#"),
-        SR("B", "replace", StripTrimMode::RIGHT, "abc", '#', "B", __LINE__, true, "#"),
-        SR("C", "replace", StripTrimMode::ALL, "abc", '#', "C", __LINE__, true, "#"),
-        SR("C", "replace", StripTrimMode::LEFT, "abc", '#', "C", __LINE__, true, "#"),
-        SR("C", "replace", StripTrimMode::RIGHT, "abc", '#', "C", __LINE__, true, "#"),
-
-        // not-so-trivial case-dependent
-        SR("aABbCc", "trim", StripTrimMode::ALL, "abc", char(0), "ABbC", __LINE__, true, ""),
-        /**/ SR("aABbCc", "trim", StripTrimMode::LEFT, "abc", char(0), "ABbCc", __LINE__, true, ""),
-        SR("aABbCc", "trim", StripTrimMode::RIGHT, "abc", char(0), "aABbC", __LINE__, true, ""),
-
-        SR("aABbCc", "strip", StripTrimMode::ALL, "abc", char(0), "ABC", __LINE__, true, ""),
-        SR("aABbCc", "strip", StripTrimMode::LEFT, "abc", char(0), "ABbCc", __LINE__, true, ""),
-        SR("aABbCc", "strip", StripTrimMode::RIGHT, "abc", char(0), "aABbC", __LINE__, true, ""),
-
-        SR("aABbCc", "replace", StripTrimMode::ALL, "abc", '#', "#AB#C#", __LINE__, true, "######"),
-        SR("aABbCc", "replace", StripTrimMode::LEFT, "abc", '#', "#ABbCc", __LINE__, true, "######"),
-        SR("aABbCc", "replace", StripTrimMode::RIGHT, "abc", '#', "aABbC#", __LINE__, true, "######"),
-
-        SR("a-A-B-b-c-C", "trim", StripTrimMode::ALL, "abc", char(0), "-A-B-b-c-C", __LINE__, true, "-A-B-b-c-"),
-        /**/ SR("a-A-B-b-c-C", "trim", StripTrimMode::LEFT, "abc", char(0), "-A-B-b-c-C", __LINE__, true, "-A-B-b-c-C"),
-        SR("a-A-B-b-c-C", "trim", StripTrimMode::RIGHT, "abc", char(0), "a-A-B-b-c-C", __LINE__, true, "a-A-B-b-c-"),
-
-        SR("a-A-B-b-c-C", "strip", StripTrimMode::ALL, "abc", char(0), "-A-B---C", __LINE__, true, "-----"),
-        SR("a-A-B-b-c-C", "strip", StripTrimMode::LEFT, "abc", char(0), "-A-B-b-c-C", __LINE__, true, "-A-B-b-c-C"),
-        SR("a-A-B-b-c-C", "strip", StripTrimMode::RIGHT, "abc", char(0), "a-A-B-b-c-C", __LINE__, true, "a-A-B-b-c-"),
-
-        SR("a-A-B-b-c-C", "replace", StripTrimMode::ALL, "abc", '#', "#-A-B-#-#-C", __LINE__, true, "#-#-#-#-#-#"),
-        SR("a-A-B-b-c-C", "replace", StripTrimMode::LEFT, "abc", '#', "#-A-B-b-c-C", __LINE__, true, "#-A-B-b-c-C"),
-        SR("a-A-B-b-c-C", "replace", StripTrimMode::RIGHT, "abc", '#', "a-A-B-b-c-C", __LINE__, true, "a-A-B-b-c-#"),
+        TestExpect_T("", "trim", StripTrimMode::ALL, "abc", char(0), "", std::source_location::current(), false, ""),
+        TestExpect_T("", "trim", StripTrimMode::LEFT, "abc", char(0), "", std::source_location::current(), false, ""),
+        TestExpect_T("", "trim", StripTrimMode::RIGHT, "abc", char(0), "", std::source_location::current(), false, ""),
+        TestExpect_T("a", "trim", StripTrimMode::ALL, "abc", char(0), "", std::source_location::current(), false, ""),
+        TestExpect_T("a", "trim", StripTrimMode::LEFT, "abc", char(0), "", std::source_location::current(), false, ""),
+        TestExpect_T("a", "trim", StripTrimMode::RIGHT, "abc", char(0), "", std::source_location::current(), false, ""),
+        TestExpect_T("b", "trim", StripTrimMode::ALL, "abc", char(0), "", std::source_location::current(), false, ""),
+        TestExpect_T("b", "trim", StripTrimMode::LEFT, "abc", char(0), "", std::source_location::current(), false, ""),
+        TestExpect_T("b", "trim", StripTrimMode::RIGHT, "abc", char(0), "", std::source_location::current(), false, ""),
+        TestExpect_T("c", "trim", StripTrimMode::ALL, "abc", char(0), "", std::source_location::current(), false, ""),
+        TestExpect_T("c", "trim", StripTrimMode::LEFT, "abc", char(0), "", std::source_location::current(), false, ""),
+        TestExpect_T("c", "trim", StripTrimMode::RIGHT, "abc", char(0), "", std::source_location::current(), false, ""),
+        TestExpect_T("A", "trim", StripTrimMode::ALL, "abc", char(0), "A", std::source_location::current(), true, ""),
+        TestExpect_T("A", "trim", StripTrimMode::LEFT, "abc", char(0), "A", std::source_location::current(), true, ""),
+        TestExpect_T("A", "trim", StripTrimMode::RIGHT, "abc", char(0), "A", std::source_location::current(), true, ""),
+        TestExpect_T("B", "trim", StripTrimMode::ALL, "abc", char(0), "B", std::source_location::current(), true, ""),
+        TestExpect_T("B", "trim", StripTrimMode::LEFT, "abc", char(0), "B", std::source_location::current(), true, ""),
+        TestExpect_T("B", "trim", StripTrimMode::RIGHT, "abc", char(0), "B", std::source_location::current(), true, ""),
+        TestExpect_T("C", "trim", StripTrimMode::ALL, "abc", char(0), "C", std::source_location::current(), true, ""),
+        TestExpect_T("C", "trim", StripTrimMode::LEFT, "abc", char(0), "C", std::source_location::current(), true, ""),
+        TestExpect_T("C", "trim", StripTrimMode::RIGHT, "abc", char(0), "C", std::source_location::current(), true, ""),
+        TestExpect_T("", "strip", StripTrimMode::ALL, "abc", char(0), "", std::source_location::current(), false, ""),
+        TestExpect_T("", "strip", StripTrimMode::LEFT, "abc", char(0), "", std::source_location::current(), false, ""),
+        TestExpect_T("", "strip", StripTrimMode::RIGHT, "abc", char(0), "", std::source_location::current(), false, ""),
+        TestExpect_T("a", "strip", StripTrimMode::ALL, "abc", char(0), "", std::source_location::current(), false, ""),
+        TestExpect_T("a", "strip", StripTrimMode::LEFT, "abc", char(0), "", std::source_location::current(), false, ""),
+        TestExpect_T("a", "strip", StripTrimMode::RIGHT, "abc", char(0), "", std::source_location::current(), ""),
+        TestExpect_T("b", "strip", StripTrimMode::ALL, "abc", char(0), "", std::source_location::current(), false, ""),
+        TestExpect_T("b", "strip", StripTrimMode::LEFT, "abc", char(0), "", std::source_location::current(), false, ""),
+        TestExpect_T(
+            "b",
+            "strip",
+            StripTrimMode::RIGHT,
+            "abc",
+            char(0),
+            "",
+            std::source_location::current(),
+            false,
+            ""
+        ),
+        TestExpect_T("c", "strip", StripTrimMode::ALL, "abc", char(0), "", std::source_location::current(), false, ""),
+        TestExpect_T("c", "strip", StripTrimMode::LEFT, "abc", char(0), "", std::source_location::current(), false, ""),
+        TestExpect_T(
+            "c",
+            "strip",
+            StripTrimMode::RIGHT,
+            "abc",
+            char(0),
+            "",
+            std::source_location::current(),
+            false,
+            ""
+        ),
+        TestExpect_T("A", "strip", StripTrimMode::ALL, "abc", char(0), "A", std::source_location::current(), true, ""),
+        TestExpect_T("A", "strip", StripTrimMode::LEFT, "abc", char(0), "A", std::source_location::current(), true, ""),
+        TestExpect_T(
+            "A",
+            "strip",
+            StripTrimMode::RIGHT,
+            "abc",
+            char(0),
+            "A",
+            std::source_location::current(),
+            true,
+            ""
+        ),
+        TestExpect_T("B", "strip", StripTrimMode::ALL, "abc", char(0), "B", std::source_location::current(), true, ""),
+        TestExpect_T("B", "strip", StripTrimMode::LEFT, "abc", char(0), "B", std::source_location::current(), true, ""),
+        TestExpect_T(
+            "B",
+            "strip",
+            StripTrimMode::RIGHT,
+            "abc",
+            char(0),
+            "B",
+            std::source_location::current(),
+            true,
+            ""
+        ),
+        TestExpect_T("C", "strip", StripTrimMode::ALL, "abc", char(0), "C", std::source_location::current(), true, ""),
+        TestExpect_T("C", "strip", StripTrimMode::LEFT, "abc", char(0), "C", std::source_location::current(), true, ""),
+        TestExpect_T(
+            "C",
+            "strip",
+            StripTrimMode::RIGHT,
+            "abc",
+            char(0),
+            "C",
+            std::source_location::current(),
+            true,
+            ""
+        ),
+        TestExpect_T("", "replace", StripTrimMode::ALL, "abc", '#', "", std::source_location::current(), false, ""),
+        TestExpect_T("", "replace", StripTrimMode::LEFT, "abc", '#', "", std::source_location::current(), false, ""),
+        TestExpect_T("", "replace", StripTrimMode::RIGHT, "abc", '#', "", std::source_location::current(), false, ""),
+        TestExpect_T("a", "replace", StripTrimMode::ALL, "abc", '#', "#", std::source_location::current(), false, "#"),
+        TestExpect_T("a", "replace", StripTrimMode::LEFT, "abc", '#', "#", std::source_location::current(), false, "#"),
+        TestExpect_T(
+            "a",
+            "replace",
+            StripTrimMode::RIGHT,
+            "abc",
+            '#',
+            "#",
+            std::source_location::current(),
+            false,
+            "#"
+        ),
+        TestExpect_T("b", "replace", StripTrimMode::ALL, "abc", '#', "#", std::source_location::current(), false, "#"),
+        TestExpect_T("b", "replace", StripTrimMode::LEFT, "abc", '#', "#", std::source_location::current(), false, "#"),
+        TestExpect_T(
+            "b",
+            "replace",
+            StripTrimMode::RIGHT,
+            "abc",
+            '#',
+            "#",
+            std::source_location::current(),
+            false,
+            "#"
+        ),
+        TestExpect_T("c", "replace", StripTrimMode::ALL, "abc", '#', "#", std::source_location::current(), false, "#"),
+        TestExpect_T("c", "replace", StripTrimMode::LEFT, "abc", '#', "#", std::source_location::current(), false, "#"),
+        TestExpect_T(
+            "c",
+            "replace",
+            StripTrimMode::RIGHT,
+            "abc",
+            '#',
+            "#",
+            std::source_location::current(),
+            false,
+            "#"
+        ),
+        TestExpect_T("A", "replace", StripTrimMode::ALL, "abc", '#', "A", std::source_location::current(), true, "#"),
+        TestExpect_T("A", "replace", StripTrimMode::LEFT, "abc", '#', "A", std::source_location::current(), true, "#"),
+        TestExpect_T("A", "replace", StripTrimMode::RIGHT, "abc", '#', "A", std::source_location::current(), true, "#"),
+        TestExpect_T("B", "replace", StripTrimMode::ALL, "abc", '#', "B", std::source_location::current(), true, "#"),
+        TestExpect_T("B", "replace", StripTrimMode::LEFT, "abc", '#', "B", std::source_location::current(), true, "#"),
+        TestExpect_T("B", "replace", StripTrimMode::RIGHT, "abc", '#', "B", std::source_location::current(), true, "#"),
+        TestExpect_T("C", "replace", StripTrimMode::ALL, "abc", '#', "C", std::source_location::current(), true, "#"),
+        TestExpect_T("C", "replace", StripTrimMode::LEFT, "abc", '#', "C", std::source_location::current(), true, "#"),
+        TestExpect_T(
+            "C",
+            "replace",
+            StripTrimMode::RIGHT,
+            "abc",
+            '#',
+            "C",
+            std::source_location::current(),
+            true,
+            "#"
+        ), // not-so-trivial case-dependent
+        TestExpect_T(
+            "aABbCc",
+            "trim",
+            StripTrimMode::ALL,
+            "abc",
+            char(0),
+            "ABbC",
+            std::source_location::current(),
+            true,
+            ""
+        ), /**/
+        TestExpect_T(
+            "aABbCc",
+            "trim",
+            StripTrimMode::LEFT,
+            "abc",
+            char(0),
+            "ABbCc",
+            std::source_location::current(),
+            true,
+            ""
+        ),
+        TestExpect_T(
+            "aABbCc",
+            "trim",
+            StripTrimMode::RIGHT,
+            "abc",
+            char(0),
+            "aABbC",
+            std::source_location::current(),
+            true,
+            ""
+        ),
+        TestExpect_T(
+            "aABbCc",
+            "strip",
+            StripTrimMode::ALL,
+            "abc",
+            char(0),
+            "ABC",
+            std::source_location::current(),
+            true,
+            ""
+        ),
+        TestExpect_T(
+            "aABbCc",
+            "strip",
+            StripTrimMode::LEFT,
+            "abc",
+            char(0),
+            "ABbCc",
+            std::source_location::current(),
+            true,
+            ""
+        ),
+        TestExpect_T(
+            "aABbCc",
+            "strip",
+            StripTrimMode::RIGHT,
+            "abc",
+            char(0),
+            "aABbC",
+            std::source_location::current(),
+            true,
+            ""
+        ),
+        TestExpect_T(
+            "aABbCc",
+            "replace",
+            StripTrimMode::ALL,
+            "abc",
+            '#',
+            "#AB#C#",
+            std::source_location::current(),
+            true,
+            "######"
+        ),
+        TestExpect_T(
+            "aABbCc",
+            "replace",
+            StripTrimMode::LEFT,
+            "abc",
+            '#',
+            "#ABbCc",
+            std::source_location::current(),
+            true,
+            "######"
+        ),
+        TestExpect_T(
+            "aABbCc",
+            "replace",
+            StripTrimMode::RIGHT,
+            "abc",
+            '#',
+            "aABbC#",
+            std::source_location::current(),
+            true,
+            "######"
+        ),
+        TestExpect_T(
+            "a-A-B-b-c-C",
+            "trim",
+            StripTrimMode::ALL,
+            "abc",
+            char(0),
+            "-A-B-b-c-C",
+            std::source_location::current(),
+            true,
+            "-A-B-b-c-"
+        ), /**/
+        TestExpect_T(
+            "a-A-B-b-c-C",
+            "trim",
+            StripTrimMode::LEFT,
+            "abc",
+            char(0),
+            "-A-B-b-c-C",
+            std::source_location::current(),
+            true,
+            "-A-B-b-c-C"
+        ),
+        TestExpect_T(
+            "a-A-B-b-c-C",
+            "trim",
+            StripTrimMode::RIGHT,
+            "abc",
+            char(0),
+            "a-A-B-b-c-C",
+            std::source_location::current(),
+            true,
+            "a-A-B-b-c-"
+        ),
+        TestExpect_T(
+            "a-A-B-b-c-C",
+            "strip",
+            StripTrimMode::ALL,
+            "abc",
+            char(0),
+            "-A-B---C",
+            std::source_location::current(),
+            true,
+            "-----"
+        ),
+        TestExpect_T(
+            "a-A-B-b-c-C",
+            "strip",
+            StripTrimMode::LEFT,
+            "abc",
+            char(0),
+            "-A-B-b-c-C",
+            std::source_location::current(),
+            true,
+            "-A-B-b-c-C"
+        ),
+        TestExpect_T(
+            "a-A-B-b-c-C",
+            "strip",
+            StripTrimMode::RIGHT,
+            "abc",
+            char(0),
+            "a-A-B-b-c-C",
+            std::source_location::current(),
+            true,
+            "a-A-B-b-c-"
+        ),
+        TestExpect_T(
+            "a-A-B-b-c-C",
+            "replace",
+            StripTrimMode::ALL,
+            "abc",
+            '#',
+            "#-A-B-#-#-C",
+            std::source_location::current(),
+            true,
+            "#-#-#-#-#-#"
+        ),
+        TestExpect_T(
+            "a-A-B-b-c-C",
+            "replace",
+            StripTrimMode::LEFT,
+            "abc",
+            '#',
+            "#-A-B-b-c-C",
+            std::source_location::current(),
+            true,
+            "#-A-B-b-c-C"
+        ),
+        TestExpect_T(
+            "a-A-B-b-c-C",
+            "replace",
+            StripTrimMode::RIGHT,
+            "abc",
+            '#',
+            "a-A-B-b-c-C",
+            std::source_location::current(),
+            true,
+            "a-A-B-b-c-#"
+        ),
     };
-    for (size_t i = 0; i < sizeof(modResults) / sizeof(SR); i++)
+    for (size_t i = 0; i < std::size(modResults); ++i)
     {
         ASSERT_TRUE(modResults[i].correctResult());
     }
@@ -326,8 +589,7 @@ TEST_F(StringUtilTest, util_container_conversion_test)
     ASSERT_EQ(sSet.size(), 2UL);
 }
 
-template <typename T_>
-void util_string_testT()
+template <typename T_> void util_string_testT()
 {
     T_ trimstring;
     trim(trimstring, " \n\t\r");
@@ -484,8 +746,7 @@ void util_string_testT()
     ASSERT_EQ(toUpper(T_("SoMeStRiNg")), T_("SOMESTRING"));
 }
 
-template <typename T_>
-void util_string_left_right_testT()
+template <typename T_> void util_string_left_right_testT()
 {
     T_ trimstring;
     trimLeft(trimstring, " \n\t\r");

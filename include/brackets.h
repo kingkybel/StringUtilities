@@ -59,7 +59,7 @@ constexpr Type BACKSLASH          = "backslash";
 constexpr Type PIPE               = "pipe";
 }; // namespace BracketKey
 
-namespace
+namespace detail
 {
 struct LeftInnerRight
 {
@@ -68,7 +68,7 @@ struct LeftInnerRight
     std::string right;
 };
 
-auto const &DEFAULT_BRACKETS = std::unordered_map<util::BracketKey::Type, LeftInnerRight>{
+inline auto const &DEFAULT_BRACKETS = std::unordered_map<util::BracketKey::Type, LeftInnerRight>{
     {
      {util::BracketKey::NONE, {"", " ", ""}},         {util::BracketKey::BOOL, {"", " ", ""}},
      {util::BracketKey::CHAR, {"'", " ", "'"}},       {util::BracketKey::INT, {"", " ", ""}},
@@ -84,7 +84,7 @@ auto const &DEFAULT_BRACKETS = std::unordered_map<util::BracketKey::Type, LeftIn
      }
 };
 
-}; // namespace
+}; // namespace detail
 
 class Brackets
 {
@@ -93,11 +93,11 @@ class Brackets
      * @brief Default constructor.
      * @param type standard type of bracket. defaulted to NONE.
      */
-    Brackets(util::BracketKey::Type type = util::BracketKey::NONE)
+    explicit Brackets(util::BracketKey::Type type = util::BracketKey::NONE)
     {
-        auto found = util::DEFAULT_BRACKETS.find(type);
+        auto found = util::detail::DEFAULT_BRACKETS.find(type);
         // only accept default bracket-keys in this constructor
-        if (found != util::DEFAULT_BRACKETS.end())
+        if (found != util::detail::DEFAULT_BRACKETS.end())
         {
             type_  = std::string{type};
             left_  = std::string{found->second.left};
@@ -130,7 +130,7 @@ class Brackets
      *
      * @return the left bracket as string.
      */
-    [[nodiscard]] std::string const left(std::string const &customLeft = "", std::string const &customRight = "") const
+    [[nodiscard]] std::string left(std::string const &customLeft = "", std::string const &customRight = "") const
     {
         return customLeft + left_ + customRight;
     }
@@ -142,7 +142,7 @@ class Brackets
      *
      * @return the left bracket as string.
      */
-    [[nodiscard]] std::string const inner(std::string const &customLeft = "", std::string const &customRight = "") const
+    [[nodiscard]] std::string inner(std::string const &customLeft = "", std::string const &customRight = "") const
     {
         return customLeft + inner_ + customRight;
     }
@@ -154,7 +154,7 @@ class Brackets
      *
      * @return the right bracket as string.
      */
-    [[nodiscard]] std::string const right(std::string const &customLeft = "", std::string const &customRight = "") const
+    [[nodiscard]] std::string right(std::string const &customLeft = "", std::string const &customRight = "") const
     {
         return customLeft + right_ + customRight;
     }

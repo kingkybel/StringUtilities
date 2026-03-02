@@ -29,7 +29,7 @@
 #include "decorator.h"
 
 #include <dkyb/traits.h>
-// #define DO_TRACE_
+// #define DO_TRACE_ // NOSONAR
 #include <dkyb/traceutil.h>
 #include <sstream>
 #include <string>
@@ -43,8 +43,7 @@ namespace util
  * @param value the value to convert
  * @return std::string a string representation of the value
  */
-template <typename Value>
-inline std::string toString(Value const &value)
+template <typename Value> inline std::string toString(Value const &value)
 {
     std::stringstream ss;
 
@@ -60,8 +59,7 @@ inline std::string toString(Value const &value)
  * @param value the value to convert
  * @return std::wstring  a wide string representation of the value
  */
-template <typename Value>
-inline std::wstring toWString(Value const &value)
+template <typename Value> inline std::wstring toWString(Value const &value)
 {
     std::wstringstream ss;
 

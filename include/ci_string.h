@@ -29,7 +29,7 @@
 #include "to_string.h"
 
 #include <dkyb/traits.h>
-// #define DO_TRACE_
+// #define DO_TRACE_ // NOSONAR
 #include <dkyb/traceutil.h>
 
 namespace util
@@ -41,9 +41,18 @@ namespace util
  *
  * @tparam CharT_ char-type
  */
-template <typename CharT_ = char>
-struct ci_char_traits : public std::char_traits<CharT_>
+template <typename CharT_ = char> struct ci_char_traits : public std::char_traits<CharT_>
 {
+    /**
+     * @brief Helper to convert a char to uppercase for comparison.
+     * @param c character to convert
+     * @return wchar_t uppercase version of the character
+     */
+    static wchar_t toUpperChar(CharT_ c)
+    {
+        return towupper(wchar_t{c});
+    }
+
     /**
      * @brief Equality of two characters ignoring their case.
      * @param c1 first character
@@ -52,9 +61,7 @@ struct ci_char_traits : public std::char_traits<CharT_>
      */
     static bool eq(CharT_ c1, CharT_ c2)
     {
-        wchar_t C1 = towupper(wchar_t{c1});
-        wchar_t C2 = towupper(wchar_t{c2});
-        return C1 == C2;
+        return toUpperChar(c1) == toUpperChar(c2);
     }
 
     /**
@@ -65,9 +72,7 @@ struct ci_char_traits : public std::char_traits<CharT_>
      */
     static bool ne(CharT_ c1, CharT_ c2)
     {
-        wchar_t C1 = towupper(wchar_t{c1});
-        wchar_t C2 = towupper(wchar_t{c2});
-        return C1 != C2;
+        return toUpperChar(c1) != toUpperChar(c2);
     }
 
     /**
@@ -78,9 +83,7 @@ struct ci_char_traits : public std::char_traits<CharT_>
      */
     static bool lt(CharT_ c1, CharT_ c2)
     {
-        wchar_t C1 = towupper(wchar_t{c1});
-        wchar_t C2 = towupper(wchar_t{c2});
-        return C1 < C2;
+        return toUpperChar(c1) < toUpperChar(c2);
     }
 
     /**
@@ -176,8 +179,7 @@ namespace std
  * @brief Overload the standard hash function for case insensitive strings to
  * enable ci_strings as elements in hash containers
  */
-template <>
-struct hash<util::ci_string>
+template <> struct hash<util::ci_string>
 {
     std::size_t operator()(util::ci_string const &s) const
     {
@@ -192,8 +194,7 @@ struct hash<util::ci_string>
  * @brief Overload the standard hash function for wide case insensitive strings to
  * enable ci_wstrings as elements in hash containers
  */
-template <>
-struct hash<util::ci_wstring>
+template <> struct hash<util::ci_wstring>
 {
     std::size_t operator()(util::ci_wstring const &s) const
     {
@@ -235,8 +236,7 @@ inline std::wostream &operator<<(std::wostream &os, util::ci_wstring const &str)
  * @brief Overload the standard hash function for wide case insensitive strings to
  * enable ci_u8strings as elements in hash containers
  */
-template <>
-struct hash<util::ci_u8string>
+template <> struct hash<util::ci_u8string>
 {
     std::size_t operator()(util::ci_u8string const &s) const
     {
@@ -269,8 +269,7 @@ inline std::basic_ostream<char8_t, std::char_traits<char8_t>> &
  * @brief Overload the standard hash function for wide case insensitive strings to
  * enable ci_u16strings as elements in hash containers
  */
-template <>
-struct hash<util::ci_u16string>
+template <> struct hash<util::ci_u16string>
 {
     std::size_t operator()(util::ci_u16string const &s) const
     {
@@ -300,8 +299,7 @@ inline std::basic_ostream<char16_t, std::char_traits<char16_t>> &
  * @brief Overload the standard hash function for wide case insensitive strings to
  * enable ci_u32strings as elements in hash containers
  */
-template <>
-struct hash<util::ci_u32string>
+template <> struct hash<util::ci_u32string>
 {
     std::size_t operator()(util::ci_u32string const &s) const
     {

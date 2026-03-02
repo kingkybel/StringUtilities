@@ -52,10 +52,10 @@ namespace util
  */
 enum class NumberClass : int8_t
 {
-    NONE,  ///< This is not a number (it is a free man!)
-    INT,   ///< A signed integer
-    UINT,  ///< An unsigned integer
-    FLOAT  ///< A floating point number
+    NONE, ///< This is not a number (it is a free man!)
+    INT,  ///< A signed integer
+    UINT, ///< An unsigned integer
+    FLOAT ///< A floating point number
 };
 
 /**
@@ -63,13 +63,13 @@ enum class NumberClass : int8_t
  */
 enum StripTrimMode : int8_t
 {
-    FRONT   = 0x01,                  ///< Strip or trim the left-hand-side
-    LEFT    = FRONT,                 ///< Strip or trim the left-hand-side
-    INSIDE  = 0x02,                  ///< Strip or trim occurrences inside the string
-    BACK    = 0x04,                  ///< Strip or trim the right-hand-side
-    RIGHT   = BACK,                  ///< Strip or trim the right-hand-side
-    OUTSIDE = FRONT | BACK,          ///< Strip or trim the left-hand-side and right-hand-side
-    ALL     = FRONT | INSIDE | BACK  ///< Strip or trim all occurrences in the string
+    FRONT   = 0x01,                 ///< Strip or trim the left-hand-side
+    LEFT    = FRONT,                ///< Strip or trim the left-hand-side
+    INSIDE  = 0x02,                 ///< Strip or trim occurrences inside the string
+    BACK    = 0x04,                 ///< Strip or trim the right-hand-side
+    RIGHT   = BACK,                 ///< Strip or trim the right-hand-side
+    OUTSIDE = FRONT | BACK,         ///< Strip or trim the left-hand-side and right-hand-side
+    ALL     = FRONT | INSIDE | BACK ///< Strip or trim all occurrences in the string
 };
 
 /**
@@ -87,12 +87,12 @@ enum StripTrimMode : int8_t
  * @param str original string
  * @return StringT_ all-lower copy of the string
  */
-template<typename StringT_, typename std::enable_if<util::is_std_string<StringT_>::value>::type * = nullptr>
+template <typename StringT_, typename std::enable_if<util::is_std_string_v<StringT_>>::type * = nullptr>
 inline StringT_ toLower(StringT_ str)
 {
     typedef typename util::is_std_string<StringT_>::char_type char_type;
     auto                                                      reval = StringT_{};
-    for(auto iter = str.begin(); iter != str.end(); ++iter)
+    for (auto iter = str.begin(); iter != str.end(); ++iter)
     {
         auto C = (static_cast<char_type>(towlower(static_cast<wchar_t>(*iter))));
         reval += C;
@@ -108,12 +108,12 @@ inline StringT_ toLower(StringT_ str)
  * @param str original string
  * @return std::basic_string<CharT_, TraitsT_> all-upper copy of the string
  */
-template<typename StringT_, typename std::enable_if<util::is_std_string<StringT_>::value>::type * = nullptr>
-inline StringT_ toUpper(const StringT_ &str)
+template <typename StringT_, typename std::enable_if<util::is_std_string_v<StringT_>>::type * = nullptr>
+inline StringT_ toUpper(StringT_ const &str)
 {
     typedef typename util::is_std_string<StringT_>::char_type char_type;
     auto                                                      reval = StringT_{};
-    for(auto iter = str.begin(); iter != str.end(); ++iter)
+    for (auto iter = str.begin(); iter != str.end(); ++iter)
     {
         auto C = (static_cast<char_type>(towupper(wchar_t{*iter})));
         reval += C;
@@ -159,13 +159,16 @@ inline StringT_ toUpper(const StringT_ &str)
  * @param stripChars characters to strip
  * @param mode strip mode
  */
-template<typename StringT_,
-         typename ConstStringT_,
-         typename util::is_compatible_string<StringT_, ConstStringT_>::type * = nullptr>
-void strip(StringT_ &str, const ConstStringT_ &stripChars = ConstStringT_{0}, StripTrimMode mode = StripTrimMode::ALL)
+template <
+    typename StringT_,
+    typename ConstStringT_,
+    typename util::is_compatible_string_t<StringT_, ConstStringT_> * = nullptr>
+void strip(StringT_ &str, ConstStringT_ const &stripChars = ConstStringT_{0}, StripTrimMode mode = StripTrimMode::ALL)
 {
-    if(str.empty())
+    if (str.empty())
+    {
         return;
+    }
 
     bool doStripFront  = ((mode & StripTrimMode::FRONT) == StripTrimMode::FRONT);
     bool doStripBack   = ((mode & StripTrimMode::BACK) == StripTrimMode::BACK);
@@ -175,22 +178,28 @@ void strip(StringT_ &str, const ConstStringT_ &stripChars = ConstStringT_{0}, St
     typename StringT_::size_type start  = doStripFront ? str.find_first_not_of(stripChars) : 0;
     typename StringT_::size_type finish = doStripBack ? str.find_last_not_of(stripChars) + 1 : str.size();
 
-    if(start == StringT_::npos)
+    if (start == StringT_::npos)
     {
         str = "";
         return;
     }
 
     StringT_ stringStripChars{stripChars};
-    if(stringStripChars.empty())
-        stringStripChars = util::convert<StringT_>(std::string{"\t \r\n"});
-
-    while(start < finish)
+    if (stringStripChars.empty())
     {
-        if(!doStripInside)  // if we did not specify to strip inside-matches
+        stringStripChars = util::convert<StringT_>(std::string{"\t \r\n"});
+    }
+
+    while (start < finish)
+    {
+        if (!doStripInside) // if we did not specify to strip inside-matches
+        {
             reval.append(&str[start], 1);
-        else if(stringStripChars.find(str[start]) == StringT_::npos)
+        }
+        else if (stringStripChars.find(str[start]) == StringT_::npos)
+        {
             reval.append(&str[start], 1);
+        }
 
         start++;
     }
@@ -206,10 +215,11 @@ void strip(StringT_ &str, const ConstStringT_ &stripChars = ConstStringT_{0}, St
  * @param str original string
  * @param trimChars characters to trim
  */
-template<typename StringT_,
-         typename ConstStringT_,
-         typename util::is_compatible_string<StringT_, ConstStringT_>::type * = nullptr>
-void trim(StringT_ &str, const ConstStringT_ &trimChars)
+template <
+    typename StringT_,
+    typename ConstStringT_,
+    typename util::is_compatible_string_t<StringT_, ConstStringT_> * = nullptr>
+void trim(StringT_ &str, ConstStringT_ const &trimChars)
 {
     strip(str, trimChars, StripTrimMode::OUTSIDE);
 }
@@ -222,10 +232,11 @@ void trim(StringT_ &str, const ConstStringT_ &trimChars)
  * @param str original string
  * @param trimChars characters to trim
  */
-template<typename StringT_,
-         typename ConstStringT_,
-         typename util::is_compatible_string<StringT_, ConstStringT_>::type * = nullptr>
-inline void trimLeft(StringT_ &str, const ConstStringT_ &trimChars = ConstStringT_{0})
+template <
+    typename StringT_,
+    typename ConstStringT_,
+    typename util::is_compatible_string_t<StringT_, ConstStringT_> * = nullptr>
+inline void trimLeft(StringT_ &str, ConstStringT_ const &trimChars = ConstStringT_{0})
 {
     return (strip(str, trimChars, StripTrimMode::LEFT));
 }
@@ -238,10 +249,11 @@ inline void trimLeft(StringT_ &str, const ConstStringT_ &trimChars = ConstString
  * @param str original string
  * @param trimChars characters to trim
  */
-template<typename StringT_,
-         typename ConstStringT_,
-         typename util::is_compatible_string<StringT_, ConstStringT_>::type * = nullptr>
-inline void trimRight(StringT_ &str, const ConstStringT_ &trimChars = ConstStringT_{0})
+template <
+    typename StringT_,
+    typename ConstStringT_,
+    typename util::is_compatible_string_t<StringT_, ConstStringT_> * = nullptr>
+inline void trimRight(StringT_ &str, ConstStringT_ const &trimChars = ConstStringT_{0})
 {
     return (strip(str, trimChars, StripTrimMode::RIGHT));
 }
@@ -258,22 +270,29 @@ inline void trimRight(StringT_ &str, const ConstStringT_ &trimChars = ConstStrin
  * @param repl replacement char
  * @param mode trim-mode
  */
-template<typename StringT_,
-         typename ConstStringT_,
-         typename CharT_,
-         typename util::is_compatible_string<StringT_, ConstStringT_>::type * = nullptr>
-void replaceChar(StringT_            &str,
-                 const ConstStringT_ &replChars   = ConstStringT_{0},
-                 CharT_               replaceWith = util::charToChar<CharT_>(char{' '}),
-                 StripTrimMode        mode        = StripTrimMode::ALL)
+template <
+    typename StringT_,
+    typename ConstStringT_,
+    typename CharT_,
+    typename util::is_compatible_string_t<StringT_, ConstStringT_> * = nullptr>
+void replaceChar(
+    StringT_ &str,
+    ConstStringT_ const &replChars = ConstStringT_{0},
+    CharT_ replaceWith             = util::charToChar<CharT_>(char{' '}),
+    StripTrimMode mode             = StripTrimMode::ALL
+)
 {
-    if(str.empty())
+    if (str.empty())
+    {
         return;
+    }
 
     auto stringReplChars = StringT_{replChars};
-    if(stringReplChars.empty())
+    if (stringReplChars.empty())
+    {
         stringReplChars = util::convert<StringT_>(std::string{"\n\t \r"});
-    if(str.find_first_not_of(stringReplChars) == StringT_::npos)
+    }
+    if (str.find_first_not_of(stringReplChars) == StringT_::npos)
     {
         str = StringT_(str.size(), replaceWith);
         return;
@@ -281,9 +300,9 @@ void replaceChar(StringT_            &str,
 
     size_t firstNonReplChar = 0;
 
-    while(firstNonReplChar < str.size() && stringReplChars.find(str[firstNonReplChar]) != StringT_::npos)
+    while (firstNonReplChar < str.size() && stringReplChars.find(str[firstNonReplChar]) != StringT_::npos)
     {
-        if((mode & StripTrimMode::FRONT) == StripTrimMode::FRONT)
+        if ((mode & StripTrimMode::FRONT) == StripTrimMode::FRONT)
         {
             str[firstNonReplChar] = replaceWith;
         }
@@ -293,9 +312,9 @@ void replaceChar(StringT_            &str,
 
     size_t lastNonReplChar = str.size() - 1;
 
-    while(stringReplChars.find(str[lastNonReplChar]) != StringT_::npos)
+    while (stringReplChars.find(str[lastNonReplChar]) != StringT_::npos)
     {
-        if((mode & StripTrimMode::BACK) == StripTrimMode::BACK)
+        if ((mode & StripTrimMode::BACK) == StripTrimMode::BACK)
         {
             str[lastNonReplChar] = replaceWith;
         }
@@ -304,12 +323,14 @@ void replaceChar(StringT_            &str,
 
     size_t insideNonReplChar = firstNonReplChar;
 
-    while(insideNonReplChar < lastNonReplChar + 1)
+    while (insideNonReplChar < lastNonReplChar + 1)
     {
-        if((mode & StripTrimMode::INSIDE) == StripTrimMode::INSIDE)
+        if ((mode & StripTrimMode::INSIDE) == StripTrimMode::INSIDE)
         {
-            if(stringReplChars.find(str[insideNonReplChar]) != StringT_::npos)
+            if (stringReplChars.find(str[insideNonReplChar]) != StringT_::npos)
+            {
                 str[insideNonReplChar] = replaceWith;
+            }
         }
 
         insideNonReplChar++;
@@ -326,13 +347,16 @@ void replaceChar(StringT_            &str,
  * @param replChars characters to replace
  * @param replaceWith replacement char
  */
-template<typename StringT_,
-         typename ConstStringT_,
-         typename CharT_,
-         typename util::is_compatible_string<StringT_, ConstStringT_>::type * = nullptr>
-inline void replaceCharLeft(StringT_            &str,
-                            const ConstStringT_ &replChars   = ConstStringT_{0},
-                            CharT_               replaceWith = util::charToChar<CharT_>(char{' '}))
+template <
+    typename StringT_,
+    typename ConstStringT_,
+    typename CharT_,
+    typename util::is_compatible_string_t<StringT_, ConstStringT_> * = nullptr>
+inline void replaceCharLeft(
+    StringT_ &str,
+    ConstStringT_ const &replChars = ConstStringT_{0},
+    CharT_ replaceWith             = util::charToChar<CharT_>(char{' '})
+)
 {
     replaceChar(str, replChars, replaceWith, StripTrimMode::LEFT);
 }
@@ -347,10 +371,11 @@ inline void replaceCharLeft(StringT_            &str,
  * @param replChars characters to replace
  * @param replaceWith replacement char
  */
-template<typename StringT_,
-         typename ConstStringT_,
-         typename util::is_compatible_string<StringT_, ConstStringT_>::type * = nullptr>
-inline void replaceCharRight(StringT_ &str, const StringT_ &stripChars = "\t \r\n", char repl = ' ')
+template <
+    typename StringT_,
+    typename ConstStringT_,
+    typename util::is_compatible_string_t<StringT_, ConstStringT_> * = nullptr>
+inline void replaceCharRight(StringT_ &str, StringT_ const &stripChars = "\t \r\n", char repl = ' ')
 {
     replaceChar(str, stripChars, repl, StripTrimMode::RIGHT);
 }
@@ -364,39 +389,47 @@ inline void replaceCharRight(StringT_ &str, const StringT_ &stripChars = "\t \r\
  * @param result result of the scan
  * @return true, if the string successfully parsed into true or false, false otherwise
  */
-template<typename StringT_, typename std::enable_if<util::is_std_string<StringT_>::value>::type * = nullptr>
-bool scanBoolString(const StringT_ &strVal, bool &result)
+template <typename StringT_, typename std::enable_if<util::is_std_string_v<StringT_>>::type * = nullptr>
+bool scanBoolString(StringT_ const &strVal, bool &result)
 {
-    const static std::map<std::string, bool> VALID_BOOL = {{"true", true},
-                                                           {"t", true},
-                                                           {"yes", true},
-                                                           {"y", true},
-                                                           {"1", true},
-                                                           {"on", true},
-                                                           {"false", false},
-                                                           {"f", false},
-                                                           {"no", false},
-                                                           {"n", false},
-                                                           {"0", false},
-                                                           {"off", false}};
+    static std::map<std::string, bool> const VALID_BOOL = {
+        {"true",  true },
+        {"t",     true },
+        {"yes",   true },
+        {"y",     true },
+        {"1",     true },
+        {"on",    true },
+        {"false", false},
+        {"f",     false},
+        {"no",    false},
+        {"n",     false},
+        {"0",     false},
+        {"off",   false}
+    };
 
     auto lower = util::convert<std::string>(util::toLower(strVal));
     auto found = VALID_BOOL.find(lower);
 
     result = found != VALID_BOOL.end() ? found->second : false;
 
-    return (found != VALID_BOOL.end());
+    return found != VALID_BOOL.end();
 }
 
-template<typename StringT_, typename std::enable_if<util::is_std_string<StringT_>::value>::type * = nullptr>
-StringT_ substr_from_to_incl(const StringT_ &str, size_t start, size_t finish)
+template <typename StringT_, typename std::enable_if<util::is_std_string_v<StringT_>>::type * = nullptr>
+StringT_ substr_from_to_incl(StringT_ const &str, size_t start, size_t finish)
 {
-    if(start > static_cast<size_t>(str.size()) || start > finish)
+    if (start > static_cast<size_t>(str.size()) || start > finish)
+    {
         return StringT_{};
-    if(finish > static_cast<size_t>(str.size()))
+    }
+    if (finish > static_cast<size_t>(str.size()))
+    {
         finish = StringT_::npos;
+    }
     else
+    {
         finish = finish - start + 1;
+    }
     return str.substr(start, finish);
 }
 
@@ -408,17 +441,18 @@ StringT_ substr_from_to_incl(const StringT_ &str, size_t start, size_t finish)
  * @param sep separator character
  * @return std::vector<std::basic_string<CharT_, TraitsT_>> a vector containing the separated sub-strings
  */
-template<typename StringT_,
-         typename SeparatorT_,
-         typename std::enable_if<util::has_std_string_compatible_char<StringT_, SeparatorT_>::value>::type * = nullptr>
-std::vector<StringT_> splitIntoVector(const StringT_ &str, SeparatorT_ sep)
+template <
+    typename StringT_,
+    typename SeparatorT_,
+    typename std::enable_if<util::has_std_string_compatible_char_v<StringT_, SeparatorT_>>::type * = nullptr>
+std::vector<StringT_> splitIntoVector(StringT_ const &str, SeparatorT_ sep)
 {
     std::vector<StringT_>        results;
     typename StringT_::size_type subStrStart = 0UL;
     typename StringT_::size_type sepStart    = str.find(sep);
     typename StringT_::size_type sepLen      = util::string_or_char_size(sep);
 
-    if(sepLen == 0 || sepStart > str.size())
+    if (sepLen == 0 || sepStart > str.size())
     {
         // separator not found or empty so add the whole string to results and return
         results.emplace_back(str);
@@ -426,9 +460,9 @@ std::vector<StringT_> splitIntoVector(const StringT_ &str, SeparatorT_ sep)
     }
 
     bool finished = false;
-    while(!finished)
+    while (!finished)
     {
-        if(sepStart == subStrStart)
+        if (sepStart == subStrStart)
         {
             // we have an empty string at the beginning, or 2 separators are touching
             results.emplace_back(StringT_{});
@@ -441,14 +475,14 @@ std::vector<StringT_> splitIntoVector(const StringT_ &str, SeparatorT_ sep)
         // start looking for another separator after this one
         subStrStart = sepStart + sepLen;
         sepStart    = str.find(sep, subStrStart);
-        if(sepStart > str.size())
+        if (sepStart > str.size())
         {
             finished = true;
             results.emplace_back(substr_from_to_incl(str, subStrStart, sepStart - 1));
         }
     }
 
-    return (results);
+    return results;
 }
 
 /**
@@ -460,17 +494,18 @@ std::vector<StringT_> splitIntoVector(const StringT_ &str, SeparatorT_ sep)
  * @param sep separator character
  * @return std::set<StringT_> a set containing the separated sub-strings
  */
-template<typename StringT_,
-         typename SeparatorT_,
-         typename std::enable_if<util::has_std_string_compatible_char<StringT_, SeparatorT_>::value>::type * = nullptr>
-std::set<StringT_> splitIntoSet(const StringT_ &str, SeparatorT_ sep)
+template <
+    typename StringT_,
+    typename SeparatorT_,
+    typename std::enable_if<util::has_std_string_compatible_char_v<StringT_, SeparatorT_>>::type * = nullptr>
+std::set<StringT_> splitIntoSet(StringT_ const &str, SeparatorT_ sep)
 {
     std::set<StringT_>           results;
     typename StringT_::size_type subStrStart = 0UL;
     typename StringT_::size_type sepStart    = str.find(sep);
     typename StringT_::size_type sepLen      = util::string_or_char_size(sep);
 
-    if(sepLen == 0 || sepStart > str.size())
+    if (sepLen == 0 || sepStart > str.size())
     {
         // separator not found or empty so add the whole string to results and return
         results.emplace(str);
@@ -478,9 +513,9 @@ std::set<StringT_> splitIntoSet(const StringT_ &str, SeparatorT_ sep)
     }
 
     bool finished = false;
-    while(!finished)
+    while (!finished)
     {
-        if(sepStart == subStrStart)
+        if (sepStart == subStrStart)
         {
             // we have an empty string at the beginning, or 2 separators are touching
             results.emplace(StringT_{});
@@ -493,14 +528,14 @@ std::set<StringT_> splitIntoSet(const StringT_ &str, SeparatorT_ sep)
         // start looking for another separator after this one
         subStrStart = sepStart + sepLen;
         sepStart    = str.find(sep, subStrStart);
-        if(sepStart > str.size())
+        if (sepStart > str.size())
         {
             finished = true;
             results.emplace(substr_from_to_incl(str, subStrStart, sepStart - 1));
         }
     }
 
-    return (results);
+    return results;
 }
 
 /**
@@ -514,32 +549,42 @@ std::set<StringT_> splitIntoSet(const StringT_ &str, SeparatorT_ sep)
  * @param str the string to classify
  * @return NumberClass INT, UINT or FLOAT if the string scans as integer, unsigned or float respectively, NONE otherwise
  */
-template<typename StringT_, typename std::enable_if<util::is_string<StringT_>::value>::type * = nullptr>
-NumberClass classifyNumberString(const StringT_ &str)
+template <typename StringT_, typename std::enable_if<util::is_string_v<StringT_>>::type * = nullptr>
+NumberClass classifyNumberString(StringT_ const &str)
 {
     static size_t maxIntLen  = toString(std::numeric_limits<int64_t>::max()).size();
     static size_t maxUintLen = toString(std::numeric_limits<uint64_t>::max()).size();
 
-    if(str.empty() || str.find_first_not_of("0123456789+-.eElL") != StringT_::npos)
+    if (str.empty() || str.find_first_not_of("0123456789+-.eElL") != StringT_::npos)
+    {
         return (NumberClass::NONE);
+    }
 
-    if(str.find_first_of(".e") != StringT_::npos)
-        return (NumberClass::FLOAT);
+    if (str.find_first_of(".e") != StringT_::npos)
+    {
+        return NumberClass::FLOAT;
+    }
 
     bool isNegative = (str[0] == '-');
     bool isSigned   = (str[0] == '-' || str[0] == '+');
 
-    if(str.size() - (isSigned ? 1 : 0) > maxUintLen)
-        return (NumberClass::FLOAT);
+    if (str.size() - (isSigned ? 1 : 0) > maxUintLen)
+    {
+        return NumberClass::FLOAT;
+    }
     else
     {
-        if(str.size() - (isSigned ? 1 : 0) >= maxIntLen)
+        if (str.size() - (isSigned ? 1 : 0) >= maxIntLen)
+        {
             return (isNegative ? NumberClass::FLOAT : NumberClass::UINT);
+        }
         else
+        {
             return (NumberClass::INT);
+        }
     }
 }
 
-};  // namespace util
+}; // namespace util
 
-#endif  // NS_UTIL_STRINGUTIL_H_INCLUDED
+#endif // NS_UTIL_STRINGUTIL_H_INCLUDED

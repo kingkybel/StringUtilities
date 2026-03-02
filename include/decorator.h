@@ -31,12 +31,13 @@
 #include <cstdint>
 #include <deque>
 #include <dkyb/traits.h>
-// #define DO_TRACE_
+// #define DO_TRACE_ // NOSONAR
 #include <dkyb/traceutil.h>
 #include <iomanip>
 #include <ios>
 #include <iosfwd>
 #include <iostream>
+#include <iterator>
 #include <limits>
 #include <map>
 #include <numbers>
@@ -131,34 +132,28 @@ inline std::basic_ostream<CharT_, Traits_> &
  * @param from the original string
  * @return StringToT_ the converted string
  */
-template <
-    typename StringToT_,
-    typename StringFrom_,
-    typename std::enable_if<util::is_std_string<StringToT_>::value>::type *  = nullptr,
-    typename std::enable_if<util::is_std_string<StringFrom_>::value>::type * = nullptr>
+template <typename StringToT_, typename StringFrom_>
+requires util::is_std_string_v<StringToT_> && util::is_std_string_v<StringFrom_>
 StringToT_ convert(StringFrom_ const &from)
 {
     StringToT_ to;
 
-    typedef typename util::is_std_string<StringFrom_>::char_type char_type_from;
-    std::transform(from.begin(), from.end(), std::back_inserter(to), [](auto const &c) {
+    using char_type_from = typename util::is_std_string<StringFrom_>::char_type;
+    std::transform(std::begin(from), std::end(from), std::back_inserter(to), [](auto const &c) {
         return static_cast<char_type_from>(c);
     });
 
     return to;
 }
 
-template <
-    typename CharToT_,
-    typename StringFrom_,
-    typename std::enable_if<util::is_char<CharToT_>::value>::type *          = nullptr,
-    typename std::enable_if<util::is_std_string<StringFrom_>::value>::type * = nullptr>
+template <typename CharToT_, typename StringFrom_>
+requires util::is_char_v<CharToT_> && util::is_std_string_v<StringFrom_>
 std::basic_string<CharToT_> convert(StringFrom_ const &from)
 {
     std::basic_string<CharToT_> to;
 
-    typedef typename util::is_std_string<StringFrom_>::char_type char_type_from;
-    std::transform(from.begin(), from.end(), std::back_inserter(to), [](auto const &c) {
+    using char_type_from = typename util::is_std_string<StringFrom_>::char_type;
+    std::transform(std::begin(from), std::end(from), std::back_inserter(to), [](auto const &c) {
         return static_cast<char_type_from>(c);
     });
 
@@ -181,8 +176,7 @@ enum class FloatBase
  *
  * @tparam CharT_ character type of the stream the format will be used on
  */
-template <typename CharT_ = char>
-struct floatFmt
+template <typename CharT_ = char> struct floatFmt
 {
     /**
      * @brief Construct a new float Fmt object
@@ -257,8 +251,7 @@ enum class IntBase
  *
  * @tparam CharT_ character type of the stream the format will be used on
  */
-template <typename CharT_ = char>
-struct intFmt
+template <typename CharT_ = char> struct intFmt
 {
     explicit intFmt(
         IntBase base                                                        = IntBase::decimal,
@@ -348,16 +341,14 @@ struct intFmt
  * @tparam CharT_ char-type
  * @tparam TraitsT_ string-traits
  */
-template <typename CharT_ = char, typename TraitsT_ = std::char_traits<CharT_>>
-class decorator
+template <typename CharT_ = char, typename TraitsT_ = std::char_traits<CharT_>> class decorator
 {
   public:
     using StringT_     = std::basic_string<CharT_, TraitsT_>;
     using BracketsType = util::Brackets;
 
   private:
-    template <typename T_>
-    [[nodiscard]] std::string typeString() const
+    template <typename T_> [[nodiscard]] std::string typeString() const
     {
         return std::string(typeid(T_).name());
     }
@@ -365,8 +356,8 @@ class decorator
     decorator() = default;
 
   public:
-    decorator(decorator &) = delete;
-    decorator &operator=(decorator &) = delete;
+    decorator(decorator const &)            = delete;
+    decorator &operator=(decorator const &) = delete;
 
   private:
     static decorator theInstance;
@@ -470,9 +461,9 @@ class decorator
         clearBrackets();
 
         clear();
-        for (auto const &kv: util::DEFAULT_BRACKETS)
+        for (auto const &[key, _]: util::detail::DEFAULT_BRACKETS)
         {
-            setBracketForKey(kv.first, BracketsType(kv.first));
+            setBracketForKey(key, BracketsType(key));
         }
 
         return true;
@@ -630,8 +621,7 @@ class decorator
      * @param defaultKey otherwise the default-key
      * @return BracketsType the bracket for the object
      */
-    template <typename T>
-    BracketsType getBracket(T const &object, std::string_view const &defaultKey)
+    template <typename T> BracketsType getBracket(T const &object, std::string_view const &defaultKey)
     {
         auto found = type2brackets_.find(typeString<T>());
 
@@ -639,7 +629,7 @@ class decorator
         {
             found = type2brackets_.find(std::string{defaultKey});
 
-            return (found == type2brackets_.end()) ? BracketsType(util::BracketKey::NONE) : found->second;
+            return found == type2brackets_.end() ? BracketsType(util::BracketKey::NONE) : found->second;
         }
 
         return found->second;
@@ -654,7 +644,7 @@ class decorator
     BracketsType getBracket(std::string_view const &key)
     {
         auto found = type2brackets_.find(std::string{key});
-        return (found == type2brackets_.end()) ? BracketsType(util::BracketKey::NONE) : found->second;
+        return found == type2brackets_.end() ? BracketsType(util::BracketKey::NONE) : found->second;
     }
 
     /**
@@ -689,7 +679,8 @@ class decorator
      * @tparam IntT_ int-type
      * @param fmt the format to set
      */
-    template <typename IntT_, typename std::enable_if<std::is_integral<IntT_>::value>::type * = nullptr>
+    template <typename IntT_>
+    requires std::is_integral_v<IntT_>
     void setFormat(intFmt<CharT_> fmt)
     {
         intType2format_[typeString<IntT_>()] = fmt;
@@ -701,7 +692,8 @@ class decorator
      * @tparam IntT_ int-type
      * @return the format set for the int-type
      */
-    template <typename IntT_, typename std::enable_if<std::is_integral<IntT_>::value>::type * = nullptr>
+    template <typename IntT_>
+    requires std::is_integral_v<IntT_>
     intFmt<CharT_> getFormat() const
     {
         auto found = intType2format_.find(typeString<IntT_>());
@@ -721,7 +713,8 @@ class decorator
      * @param base IntBase value
      * @see util::IntBase
      */
-    template <typename IntT_, typename std::enable_if<std::is_integral<IntT_>::value>::type * = nullptr>
+    template <typename IntT_>
+    requires std::is_integral_v<IntT_>
     void setBase(IntBase base)
     {
         auto fmt  = getFormat<IntT_>();
@@ -739,7 +732,8 @@ class decorator
      * @tparam IntT_
      * @param width width of display
      */
-    template <typename IntT_, typename std::enable_if<std::is_integral<IntT_>::value>::type * = nullptr>
+    template <typename IntT_>
+    requires std::is_integral_v<IntT_>
     void setWidth(size_t width)
     {
         auto fmt   = getFormat<IntT_>();
@@ -753,7 +747,8 @@ class decorator
      * @tparam IntT_ int-type
      * @param showBase if true, then display the base string, otherwise don't
      */
-    template <typename IntT_, typename std::enable_if<std::is_integral<IntT_>::value>::type * = nullptr>
+    template <typename IntT_>
+    requires std::is_integral_v<IntT_>
     void setShowBase(bool showBase)
     {
         auto fmt      = getFormat<IntT_>();
@@ -769,11 +764,12 @@ class decorator
      * @param setBaseAsWell set the base to hex as well, if true
      * @param setShowBaseAsWell show the base string in displays as well, if true
      */
-    template <typename IntT_, typename std::enable_if<std::is_integral<IntT_>::value>::type * = nullptr>
+    template <typename IntT_>
+    requires std::is_integral_v<IntT_>
     void setHexBaseStr(
         std::basic_string_view<CharT_, TraitsT_> hexBaseStr,
-        bool setBaseAsWell     = true,
-        bool setShowBaseAsWell = true
+        bool                                     setBaseAsWell = true,
+        bool setShowBaseAsWell                                 = true
     )
     {
         auto fmt = getFormat<IntT_>();
@@ -797,11 +793,12 @@ class decorator
      * @param setBaseAsWell set the base to oct as well, if true
      * @param setShowBaseAsWell show the base string in displays as well, if true
      */
-    template <typename IntT_, typename std::enable_if<std::is_integral<IntT_>::value>::type * = nullptr>
+    template <typename IntT_>
+    requires std::is_integral_v<IntT_>
     void setOctBaseStr(
         std::basic_string_view<CharT_, TraitsT_> octBaseStr,
-        bool setBaseAsWell     = true,
-        bool setShowBaseAsWell = true
+        bool                                     setBaseAsWell = true,
+        bool setShowBaseAsWell                                 = true
     )
     {
         auto fmt = getFormat<IntT_>();
@@ -824,7 +821,8 @@ class decorator
      * @param hexUpper display in upper if true, in lower otherwise
      * @param setBaseAsWell set the base to hex as well, if true
      */
-    template <typename IntT_, typename std::enable_if<std::is_integral<IntT_>::value>::type * = nullptr>
+    template <typename IntT_>
+    requires std::is_integral_v<IntT_>
     void setHexUpper(bool hexUpper, bool setBaseAsWell = true)
     {
         auto fmt = getFormat<IntT_>();
@@ -842,7 +840,8 @@ class decorator
      * @tparam IntT_ int-type
      * @param fill new fill  character
      */
-    template <typename IntT_, typename std::enable_if<std::is_integral<IntT_>::value>::type * = nullptr>
+    template <typename IntT_>
+    requires std::is_integral_v<IntT_>
     void setFill(CharT_ fill)
     {
         auto fmt  = getFormat<IntT_>();
@@ -856,7 +855,8 @@ class decorator
      * @tparam FloatT_ float-type
      * @param fmt the format to set
      */
-    template <typename FloatT_, typename std::enable_if<std::is_floating_point<FloatT_>::value>::type * = nullptr>
+    template <typename FloatT_>
+    requires std::is_floating_point_v<FloatT_>
     void setFormat(floatFmt<CharT_> fmt)
     {
         floatType2format_[typeString<FloatT_>()] = fmt;
@@ -867,7 +867,8 @@ class decorator
      *
      * @tparam FloatT_ float-type
      */
-    template <typename FloatT_, typename std::enable_if<std::is_floating_point<FloatT_>::value>::type * = nullptr>
+    template <typename FloatT_>
+    requires std::is_floating_point_v<FloatT_>
     void setFormat(size_t width, size_t precision = 5, char fill = '0', bool isFixed = false)
     {
         floatType2format_[typeString<FloatT_>()] = floatFmt<CharT_>(width, precision, fill, isFixed);
@@ -879,7 +880,8 @@ class decorator
      * @tparam FloatT_ float-type
      * @return floatFmt<CharT_> the format set for the float-type
      */
-    template <typename FloatT_, typename std::enable_if<std::is_floating_point<FloatT_>::value>::type * = nullptr>
+    template <typename FloatT_>
+    requires std::is_floating_point_v<FloatT_>
     floatFmt<CharT_> getFormat()
     {
         auto found = floatType2format_.find(typeString<FloatT_>());
@@ -898,7 +900,8 @@ class decorator
      * @tparam FloatT_ float-type
      * @param fill fill-character
      */
-    template <typename FloatT_, typename std::enable_if<std::is_floating_point<FloatT_>::value>::type * = nullptr>
+    template <typename FloatT_>
+    requires std::is_floating_point_v<FloatT_>
     void setFill(CharT_ fill)
     {
         auto fmt  = getFormat<FloatT_>();
@@ -910,10 +913,10 @@ class decorator
      * @brief Set the width for float display. Only enabled if FloatT_ is an floating point type.
      *
      * @tparam FloatT_ float-type
-     * @tparam std::enable_if<std::is_floating_point<FloatT_>::value>::type
      * @param width new width
      */
-    template <typename FloatT_, typename std::enable_if<std::is_floating_point<FloatT_>::value>::type * = nullptr>
+    template <typename FloatT_>
+    requires std::is_floating_point_v<FloatT_>
     void setWidth(size_t width)
     {
         auto fmt   = getFormat<FloatT_>();
@@ -927,7 +930,8 @@ class decorator
      * @tparam FloatT_ float-type
      * @param precision new precision
      */
-    template <typename FloatT_, typename std::enable_if<std::is_floating_point<FloatT_>::value>::type * = nullptr>
+    template <typename FloatT_>
+    requires std::is_floating_point_v<FloatT_>
     void setPrecision(size_t precision)
     {
         auto fmt       = getFormat<FloatT_>();
@@ -941,7 +945,8 @@ class decorator
      * @tparam FloatT_ float-type
      * @param base new float base display configuration
      */
-    template <typename FloatT_, typename std::enable_if<std::is_floating_point<FloatT_>::value>::type * = nullptr>
+    template <typename FloatT_>
+    requires std::is_floating_point_v<FloatT_>
     void setBase(FloatBase base)
     {
         auto fmt  = getFormat<FloatT_>();
@@ -953,8 +958,7 @@ class decorator
 //////////////////////
 // Static definitions
 
-template <typename CharT_, typename TraitsT_>
-decorator<CharT_, TraitsT_> decorator<CharT_, TraitsT_>::theInstance;
+template <typename CharT_, typename TraitsT_> decorator<CharT_, TraitsT_> decorator<CharT_, TraitsT_>::theInstance;
 
 //////////////////////
 
@@ -981,8 +985,7 @@ void decorate(std::basic_ostream<CharT_, Traits_> &os, Value_ const &value)
  * @param os output stream
  * @param value the value to decorate
  */
-template <typename CharT_, typename Traits_>
-void decorate(std::basic_ostream<CharT_, Traits_> &os, bool const &value)
+template <typename CharT_, typename Traits_> void decorate(std::basic_ostream<CharT_, Traits_> &os, bool const &value)
 {
     auto &decoInst = util::decorator<CharT_, Traits_>::instance();
     auto  bracket  = decoInst.getBracket(value, util::BracketKey::BOOL);
@@ -1097,8 +1100,7 @@ void decorateInt(std::basic_ostream<CharT_, Traits_> &os, std::string_view const
  * @param os output stream
  * @param value the value to decorate
  */
-template <typename CharT_, typename Traits_>
-void decorate(std::basic_ostream<CharT_, Traits_> &os, char const &value)
+template <typename CharT_, typename Traits_> void decorate(std::basic_ostream<CharT_, Traits_> &os, char const &value)
 {
     decorateInt(os, util::BracketKey::CHAR, value);
 }
@@ -1139,8 +1141,7 @@ void decorate(std::basic_ostream<CharT_, Traits_> &os, char32_t const &value)
  * @param os output stream
  * @param value the value to decorate
  */
-template <typename CharT_, typename Traits_>
-void decorate(std::basic_ostream<CharT_, Traits_> &os, int8_t const &value)
+template <typename CharT_, typename Traits_> void decorate(std::basic_ostream<CharT_, Traits_> &os, int8_t const &value)
 {
     decorateInt(os, util::BracketKey::INT, value);
 }
@@ -1295,8 +1296,7 @@ void decorateFloat(std::basic_ostream<CharT_, Traits_> &os, std::string_view con
  * @param os output stream
  * @param value the value to decorate
  */
-template <typename CharT_, typename Traits_>
-void decorate(std::basic_ostream<CharT_, Traits_> &os, float const &value)
+template <typename CharT_, typename Traits_> void decorate(std::basic_ostream<CharT_, Traits_> &os, float const &value)
 {
     decorateFloat(os, util::BracketKey::FLOAT, value);
 }
@@ -1309,8 +1309,7 @@ void decorate(std::basic_ostream<CharT_, Traits_> &os, float const &value)
  * @param os output stream
  * @param value the value to decorate
  */
-template <typename CharT_, typename Traits_>
-void decorate(std::basic_ostream<CharT_, Traits_> &os, double const &value)
+template <typename CharT_, typename Traits_> void decorate(std::basic_ostream<CharT_, Traits_> &os, double const &value)
 {
     decorateFloat(os, util::BracketKey::FLOAT, value);
 }
@@ -1354,8 +1353,7 @@ void decorate(std::basic_ostream<CharT_, Traits_> &os, std::basic_string<CharT_,
  * @param os output stream
  * @param value the value to decorate
  */
-template <typename CharT_, typename Traits_>
-void decorate(std::basic_ostream<CharT_, Traits_> &os, CharT_ const *value)
+template <typename CharT_, typename Traits_> void decorate(std::basic_ostream<CharT_, Traits_> &os, CharT_ const *value)
 {
     auto &decoInst = util::decorator<CharT_, Traits_>::instance();
     auto  bracket  = decoInst.getBracket(value, util::BracketKey::STRING);
@@ -1388,14 +1386,11 @@ void decorate(std::basic_ostream<CharT_, Traits_> &os, std::basic_string_view<Ch
  * @param container the forward iterable container
  * @param defaultBracketId  an ID to select a bracket if no special bracket is defined for the container
  */
-template <
-    typename ContainerType_,
-    typename CharT_,
-    typename Traits_,
-    typename std::enable_if<!util::is_tuple<ContainerType_>::value>::type * = nullptr>
+template <typename ContainerType_, typename CharT_, typename Traits_>
+requires(!util::is_tuple_v<ContainerType_>)
 void decorate(
-    std::basic_ostream<CharT_, Traits_> &os,
-    ContainerType_ const &container,
+    std::basic_ostream<CharT_, Traits_>      &os,
+    ContainerType_ const                     &container,
     std::basic_string<CharT_, Traits_> const &defaultBracketId
 )
 {
@@ -1432,18 +1427,14 @@ void decorate(
  * @param tuple_obj tuple object
  * @param bracket brackets for this tuple object
  */
-template <
-    typename TupleType_,
-    typename CharT_,
-    typename Traits_,
-    std::size_t Index                                                  = 0,
-    typename std::enable_if<util::is_tuple<TupleType_>::value>::type * = nullptr>
+template <typename TupleType_, typename CharT_, typename Traits_, std::size_t Index = 0>
+requires util::is_tuple_v<TupleType_>
 void iterateTuple(std::basic_ostream<CharT_, Traits_> &os, TupleType_ const &tuple_obj, util::Brackets const &bracket)
 {
-    if constexpr (Index < std::tuple_size<TupleType_>::value)
+    if constexpr (Index < std::tuple_size_v<TupleType_>)
     {
         decorate(os, std::get<Index>(tuple_obj));
-        if constexpr (Index < std::tuple_size<TupleType_>::value - 1)
+        if constexpr (Index < std::tuple_size_v<TupleType_> - 1)
         {
             os << bracket.inner();
         }
@@ -1460,16 +1451,12 @@ void iterateTuple(std::basic_ostream<CharT_, Traits_> &os, TupleType_ const &tup
  * @param os output stream
  * @param tuple_obj tuple object
  * @param defaultBracketId  an ID to select a bracket if no special bracket is defined for the container
- * @return std::enable_if<std::is_same<TupleType_, std::tuple<typename TupleType_::value_type>>::value, void>::type
  */
-template <
-    typename TupleType_,
-    typename CharT_,
-    typename Traits_,
-    typename std::enable_if<util::is_tuple<TupleType_>::value>::type * = nullptr>
+template <typename TupleType_, typename CharT_, typename Traits_>
+requires util::is_tuple_v<TupleType_>
 void decorate(
-    std::basic_ostream<CharT_, Traits_> &os,
-    TupleType_ const &tuple_obj,
+    std::basic_ostream<CharT_, Traits_>      &os,
+    TupleType_ const                         &tuple_obj,
     std::basic_string<CharT_, Traits_> const &defaultBracketId
 )
 {
