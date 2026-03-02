@@ -433,7 +433,7 @@ requires(util::has_std_string_compatible_char_v<StringT_, SeparatorT_>)
         if (sepStart == subStrStart)
         {
             // we have an empty string at the beginning, or 2 separators are touching
-            results.emplace_back(StringT_{});
+            results.emplace_back();
         }
         else
         {
@@ -484,7 +484,7 @@ requires(util::has_std_string_compatible_char_v<StringT_, SeparatorT_>)
         if (sepStart == subStrStart)
         {
             // we have an empty string at the beginning, or 2 separators are touching
-            results.emplace(StringT_{});
+            results.emplace();
         }
         else
         {
