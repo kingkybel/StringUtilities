@@ -166,7 +166,7 @@ void strip(StringT_ &str, ConstStringT_ const &stripChars = ConstStringT_{0}, St
         {
             reval.append(&str[start], 1);
         }
-        else if (stringStripChars.find(str[start]) == StringT_::npos)
+        else if (!stringStripChars.contains(str[start]))
         {
             reval.append(&str[start], 1);
         }
@@ -271,7 +271,7 @@ void replaceChar(
     using enum StripTrimMode;
     size_t firstNonReplChar = 0;
 
-    while (firstNonReplChar < std::size(str) && stringReplChars.find(str[firstNonReplChar]) != StringT_::npos)
+    while (firstNonReplChar < std::size(str) && stringReplChars.contains(str[firstNonReplChar]))
     {
         if (isModeSet(mode, FRONT))
         {
@@ -283,7 +283,7 @@ void replaceChar(
 
     size_t lastNonReplChar = std::size(str) - 1;
 
-    while (stringReplChars.find(str[lastNonReplChar]) != StringT_::npos)
+    while (stringReplChars.contains(str[lastNonReplChar]))
     {
         if (isModeSet(mode, BACK))
         {
@@ -296,7 +296,7 @@ void replaceChar(
 
     while (insideNonReplChar < lastNonReplChar + 1)
     {
-        if (isModeSet(mode, INSIDE) && stringReplChars.find(str[insideNonReplChar]) != StringT_::npos)
+        if (isModeSet(mode, INSIDE) && stringReplChars.contains(str[insideNonReplChar]))
         {
             str[insideNonReplChar] = replaceWith;
         }
