@@ -118,6 +118,10 @@ TEST_F(DecoratorTest, int_format_initialisation_test)
     decInst.setBase<char>(IntBase::octal);
     ASSERT_EQ(toString('M'), "'0o-115'");
 
+    decInst.setBase<char>(IntBase::default_format);
+    ASSERT_FALSE(decInst.getFormat<char>().isValid_);
+    ASSERT_EQ(toString('M'), "'M'");
+
     // cout << decInst.showConfig(); // NOSONAR
     decInst.clearIntFormat();
     ASSERT_EQ(toString('M'), "'M'");
@@ -143,6 +147,25 @@ TEST_F(DecoratorTest, float_format_initialisation_test)
     ASSERT_EQ(toString(0.0L), "****0.0000");
     decInst.setBase<long double>(hexfloat);
     ASSERT_EQ(toString(0.0L), "0x0p+0");
+}
+
+TEST(DecoratorErrorPathTest, instance_throws_runtime_error_test)
+{
+    decorator<>::forceInstanceFailureForTesting(true);
+    try
+    {
+        (void)decorator<>::instance();
+        FAIL() << "Expected std::runtime_error to be thrown";
+    }
+    catch (std::runtime_error const &e)
+    {
+        EXPECT_STREQ("Could not get instance of decorator", e.what());
+    }
+    catch (...)
+    {
+        FAIL() << "Expected std::runtime_error";
+    }
+    decorator<>::forceInstanceFailureForTesting(false);
 }
 
 TEST_F(DecoratorTest, container_container_decoration_test)

@@ -359,6 +359,9 @@ class decorator // NOSONAR S1228: This decorator class needs all it member funct
 
   private:
     static decorator theInstance;
+#ifdef DKYB_TESTING
+    inline static bool forceInstanceFailureForTesting_ = false;
+#endif
 
     // keys of maps are strings, not the output string type StringT_
     using BracketMapType     = std::map<std::string, BracketsType, std::less<>>;
@@ -515,6 +518,13 @@ class decorator // NOSONAR S1228: This decorator class needs all it member funct
         return initializeBrackets() && initializeIntFormat() && initializeFloatFormat();
     }
 
+#ifdef DKYB_TESTING
+    static void forceInstanceFailureForTesting(bool forceFailure)
+    {
+        forceInstanceFailureForTesting_ = forceFailure;
+    }
+#endif
+
     /**
      * @brief Retrieve the singleton instance.
      *
@@ -522,6 +532,12 @@ class decorator // NOSONAR S1228: This decorator class needs all it member funct
      */
     static decorator &instance()
     {
+#ifdef DKYB_TESTING
+        if (forceInstanceFailureForTesting_)
+        {
+            throw std::runtime_error("Could not get instance of decorator"); // NOSONAR
+        }
+#endif
         if (static bool initialized = decorator::theInstance.initialize(); !initialized)
         {
             throw std::runtime_error("Could not get instance of decorator"); // NOSONAR

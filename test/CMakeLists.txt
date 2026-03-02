@@ -10,4 +10,5 @@ target_link_libraries(run_tests
         gtest
         gtest_main
 )
+target_compile_definitions(run_tests PRIVATE DKYB_TESTING=1)
 add_test(NAME run_tests COMMAND run_tests)
