@@ -314,7 +314,7 @@ TEST_F(StringUtilTest, util_ci_traits_test)
 
 TEST_F(StringUtilTest, util_container_conversion_test)
 {
-    set<string, less<>> sSet;
+    auto sSet = toSet(vector<string>{});
     ASSERT_TRUE(sSet.empty());
     vector<string> sVec = toVector(sSet);
     ASSERT_TRUE(sVec.empty());
@@ -424,7 +424,7 @@ template <typename T_> void util_string_testT()
 
     source = "123/456/789/123/789";
     // ("split " + source + " into set by '/'");
-    set<T_, less<>> resultSet = splitIntoSet(source, '/');
+    auto resultSet = splitIntoSet(source, '/');
     ASSERT_EQ(resultSet.size(), 3UL);
     result = toVector(resultSet);
     ASSERT_EQ(result.size(), 3UL);
@@ -588,7 +588,7 @@ template <typename T_> void util_string_left_right_testT()
 
     source = "123/456/789/123/789";
     // ("split " + source + " into set by '/'");
-    set<T_, less<>> resultSet = splitIntoSet(source, '/');
+    auto resultSet = splitIntoSet(source, '/');
     ASSERT_EQ(resultSet.size(), 3UL);
     result = toVector(resultSet);
     ASSERT_EQ(result.size(), 3UL);
@@ -691,7 +691,7 @@ TEST_F(StringUtilTest, util_ci_string_test)
     ASSERT_EQ(result[2], ci_string(""));
 
     source                   = "xxxAXxXbxXxC";
-    set<ci_string, less<>> resultSet = splitIntoSet(source, ci_string("xxx"));
+    auto resultSet = splitIntoSet(source, ci_string("xxx"));
     ASSERT_EQ(resultSet.size(), 4UL);
     ASSERT_NE(resultSet.find(""), resultSet.end());
     ASSERT_NE(resultSet.find("a"), resultSet.end());
