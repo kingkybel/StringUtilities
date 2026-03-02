@@ -53,7 +53,7 @@ TEST_F(StringUtilCoverageTest, split_into_vector_handles_empty_segments)
 TEST_F(StringUtilCoverageTest, split_into_set_deduplicates_and_keeps_empty)
 {
     const auto values = splitIntoSet(std::string{"a,,a"}, ',');
-    const std::set<std::string> expected{"", "a"};
+    const std::set<std::string, std::less<>> expected{"", "a"};
     EXPECT_EQ(values, expected);
 }
 

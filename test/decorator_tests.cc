@@ -100,9 +100,8 @@ TEST_F(DecoratorTest, int_format_initialisation_test)
     decInst.setBase<char>(IntBase::octal);
     ASSERT_EQ(toString('M'), "'0o-115'");
 
-    // cout << decInst.showConfig();
+    // cout << decInst.showConfig(); // NOSONAR
     decInst.clearIntFormat();
-    // cout << decInst.showConfig();
     ASSERT_EQ(toString('M'), "'M'");
 
     decInst.initialize();
@@ -114,16 +113,17 @@ TEST_F(DecoratorTest, int_format_initialisation_test)
 
 TEST_F(DecoratorTest, float_format_initialisation_test)
 {
+    using enum util::FloatBase;
     auto &decInst = decorator<>::instance();
     ASSERT_EQ(toString(0.0L), "0.000000e+00");
-    decInst.setBase<long double>(FloatBase::scientific);
+    decInst.setBase<long double>(scientific);
     ASSERT_EQ(toString(0.0L), "0.000000e+00");
-    decInst.setBase<long double>(FloatBase::fixed);
+    decInst.setBase<long double>(fixed);
     decInst.setFill<long double>('*');
     decInst.setWidth<long double>(10);
     decInst.setPrecision<long double>(4);
     ASSERT_EQ(toString(0.0L), "****0.0000");
-    decInst.setBase<long double>(FloatBase::hexfloat);
+    decInst.setBase<long double>(hexfloat);
     ASSERT_EQ(toString(0.0L), "0x0p+0");
 }
 
@@ -204,7 +204,7 @@ TEST_F(DecoratorTest, multi_container_decoration_test)
             << "pair '" << p << "' wasn't found in '" << toString(umm) << "'";
     }
 
-    auto ms = multiset<string>{"abc", "def", "ghi", "def"};
+    auto ms = multiset<string, less<>>{"abc", "def", "ghi", "def"};
     ASSERT_EQ(toString(ms), "{#\"abc\",\"def\",\"def\",\"ghi\"#}");
 
     auto           ums = unordered_multiset<string>{"abc", "def", "ghi", "def"};

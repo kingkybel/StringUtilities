@@ -32,7 +32,7 @@
 #include <cstdint>
 #include <ctime>
 #include <deque>
-// #define DO_TRACE_
+// #define DO_TRACE_ // NOSONAR
 #include <dkyb/traceutil.h>
 #include <functional>
 #include <iostream>
@@ -59,9 +59,9 @@ enum class NumberClass : int8_t
 };
 
 /**
- * @brief Trim-mode enumeration, binary operation possible
+ * @brief Trim-mode enumeration, bitwise operation possible
  */
-enum StripTrimMode : int8_t
+enum class StripTrimMode : int8_t
 {
     FRONT   = 0x01,                 ///< Strip or trim the left-hand-side
     LEFT    = FRONT,                ///< Strip or trim the left-hand-side
@@ -72,13 +72,10 @@ enum StripTrimMode : int8_t
     ALL     = FRONT | INSIDE | BACK ///< Strip or trim all occurrences in the string
 };
 
-/**
- * @brief Character traits for case-insensitive string type.
- * Inherits all the functions that we don't need to override for
- * case-insensitivity.
- *
- * @tparam CharT_ char-type
- */
+inline bool isModeSet(StripTrimMode mode, StripTrimMode bit)
+{
+    return (std::byte(mode) & std::byte(bit)) == std::byte(bit);
+}
 
 /**
  * @brief Create an all-lower-case copy of the given string.
@@ -87,18 +84,19 @@ enum StripTrimMode : int8_t
  * @param str original string
  * @return StringT_ all-lower copy of the string
  */
-template <typename StringT_, typename std::enable_if<util::is_std_string_v<StringT_>>::type * = nullptr>
+template <typename StringT_>
 inline StringT_ toLower(StringT_ str)
+requires(util::is_std_string_v<StringT_>)
 {
-    typedef typename util::is_std_string<StringT_>::char_type char_type;
-    auto                                                      reval = StringT_{};
-    for (auto iter = str.begin(); iter != str.end(); ++iter)
+    using char_type = util::is_std_string<StringT_>::char_type;
+    auto reval      = StringT_{};
+    for (auto c: str)
     {
-        auto C = (static_cast<char_type>(towlower(static_cast<wchar_t>(*iter))));
+        auto C = (static_cast<char_type>(towlower(static_cast<wchar_t>(c))));
         reval += C;
     }
 
-    return (reval);
+    return reval;
 }
 
 /**
@@ -108,47 +106,20 @@ inline StringT_ toLower(StringT_ str)
  * @param str original string
  * @return std::basic_string<CharT_, TraitsT_> all-upper copy of the string
  */
-template <typename StringT_, typename std::enable_if<util::is_std_string_v<StringT_>>::type * = nullptr>
+template <typename StringT_>
 inline StringT_ toUpper(StringT_ const &str)
+requires(util::is_std_string_v<StringT_>)
 {
-    typedef typename util::is_std_string<StringT_>::char_type char_type;
-    auto                                                      reval = StringT_{};
-    for (auto iter = str.begin(); iter != str.end(); ++iter)
+    using char_type = util::is_std_string<StringT_>::char_type;
+    auto reval      = StringT_{};
+    for (auto c: str)
     {
-        auto C = (static_cast<char_type>(towupper(wchar_t{*iter})));
+        auto C = (static_cast<char_type>(towupper(static_cast<wchar_t>(c))));
         reval += C;
     }
 
-    return (reval);
+    return reval;
 }
-
-// void toUpper(std::string& str, std::string localeStr)
-// {
-//     //unicode to wide string converter
-//     std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
-
-//     //convert to wstring (because std::toupper is not implemented on all platforms for u32string)
-//     std::wstring wide = converter.from_bytes(str);
-
-//     std::locale locale;
-
-//     try
-//     {
-//         locale = std::locale(localeStr);
-//     }
-//     catch(const std::exception&)
-//     {
-//         std::cerr << "locale not supported by system: " << localeStr << " (" << getLocaleByLanguage(localeStr) << ")"
-//         << std::endl;
-//     }
-
-//     auto& f = std::use_facet<std::ctype<wchar_t>>(locale);
-
-//     f.toupper(&wide[0], &wide[0] + wide.size());
-
-//     //convert back
-//     str = converter.to_bytes(wide);
-// }
 
 /**
  * @brief Strip left and/or right and/or interior of string.
@@ -165,18 +136,17 @@ template <
     typename util::is_compatible_string_t<StringT_, ConstStringT_> * = nullptr>
 void strip(StringT_ &str, ConstStringT_ const &stripChars = ConstStringT_{0}, StripTrimMode mode = StripTrimMode::ALL)
 {
-    if (str.empty())
+    if (std::empty(str))
     {
         return;
     }
+    bool     doStripFront  = isModeSet(mode, StripTrimMode::FRONT);
+    bool     doStripInside = isModeSet(mode, StripTrimMode::INSIDE);
+    bool     doStripBack   = isModeSet(mode, StripTrimMode::BACK);
+    StringT_ reval;
 
-    bool doStripFront  = ((mode & StripTrimMode::FRONT) == StripTrimMode::FRONT);
-    bool doStripBack   = ((mode & StripTrimMode::BACK) == StripTrimMode::BACK);
-    bool doStripInside = ((mode & StripTrimMode::INSIDE) == StripTrimMode::INSIDE);
-
-    StringT_                     reval  = "";
     typename StringT_::size_type start  = doStripFront ? str.find_first_not_of(stripChars) : 0;
-    typename StringT_::size_type finish = doStripBack ? str.find_last_not_of(stripChars) + 1 : str.size();
+    typename StringT_::size_type finish = doStripBack ? str.find_last_not_of(stripChars) + 1 : std::size(str);
 
     if (start == StringT_::npos)
     {
@@ -185,7 +155,7 @@ void strip(StringT_ &str, ConstStringT_ const &stripChars = ConstStringT_{0}, St
     }
 
     StringT_ stringStripChars{stripChars};
-    if (stringStripChars.empty())
+    if (std::empty(stringStripChars))
     {
         stringStripChars = util::convert<StringT_>(std::string{"\t \r\n"});
     }
@@ -282,27 +252,28 @@ void replaceChar(
     StripTrimMode mode             = StripTrimMode::ALL
 )
 {
-    if (str.empty())
+    if (std::empty(str))
     {
         return;
     }
 
     auto stringReplChars = StringT_{replChars};
-    if (stringReplChars.empty())
+    if (std::empty(stringReplChars))
     {
         stringReplChars = util::convert<StringT_>(std::string{"\n\t \r"});
     }
     if (str.find_first_not_of(stringReplChars) == StringT_::npos)
     {
-        str = StringT_(str.size(), replaceWith);
+        str = StringT_(std::size(str), replaceWith);
         return;
     }
 
+    using enum StripTrimMode;
     size_t firstNonReplChar = 0;
 
-    while (firstNonReplChar < str.size() && stringReplChars.find(str[firstNonReplChar]) != StringT_::npos)
+    while (firstNonReplChar < std::size(str) && stringReplChars.find(str[firstNonReplChar]) != StringT_::npos)
     {
-        if ((mode & StripTrimMode::FRONT) == StripTrimMode::FRONT)
+        if (isModeSet(mode, FRONT))
         {
             str[firstNonReplChar] = replaceWith;
         }
@@ -310,11 +281,11 @@ void replaceChar(
         firstNonReplChar++;
     }
 
-    size_t lastNonReplChar = str.size() - 1;
+    size_t lastNonReplChar = std::size(str) - 1;
 
     while (stringReplChars.find(str[lastNonReplChar]) != StringT_::npos)
     {
-        if ((mode & StripTrimMode::BACK) == StripTrimMode::BACK)
+        if (isModeSet(mode, BACK))
         {
             str[lastNonReplChar] = replaceWith;
         }
@@ -325,17 +296,14 @@ void replaceChar(
 
     while (insideNonReplChar < lastNonReplChar + 1)
     {
-        if ((mode & StripTrimMode::INSIDE) == StripTrimMode::INSIDE)
+        if (isModeSet(mode, INSIDE) && stringReplChars.find(str[insideNonReplChar]) != StringT_::npos)
         {
-            if (stringReplChars.find(str[insideNonReplChar]) != StringT_::npos)
-            {
-                str[insideNonReplChar] = replaceWith;
-            }
+            str[insideNonReplChar] = replaceWith;
         }
-
         insideNonReplChar++;
     }
 }
+} // namespace util
 
 /**
  * @brief Replace only left occurrences of replChars.
@@ -358,7 +326,7 @@ inline void replaceCharLeft(
     CharT_ replaceWith             = util::charToChar<CharT_>(char{' '})
 )
 {
-    replaceChar(str, replChars, replaceWith, StripTrimMode::LEFT);
+    replaceChar(str, replChars, replaceWith, util::StripTrimMode::LEFT);
 }
 
 /**
@@ -377,7 +345,7 @@ template <
     typename util::is_compatible_string_t<StringT_, ConstStringT_> * = nullptr>
 inline void replaceCharRight(StringT_ &str, StringT_ const &stripChars = "\t \r\n", char repl = ' ')
 {
-    replaceChar(str, stripChars, repl, StripTrimMode::RIGHT);
+    replaceChar(str, stripChars, repl, util::StripTrimMode::RIGHT);
 }
 
 /**
@@ -389,10 +357,11 @@ inline void replaceCharRight(StringT_ &str, StringT_ const &stripChars = "\t \r\
  * @param result result of the scan
  * @return true, if the string successfully parsed into true or false, false otherwise
  */
-template <typename StringT_, typename std::enable_if<util::is_std_string_v<StringT_>>::type * = nullptr>
+template <typename StringT_>
 bool scanBoolString(StringT_ const &strVal, bool &result)
+requires(util::is_std_string_v<StringT_>)
 {
-    static std::map<std::string, bool> const VALID_BOOL = {
+    static std::map<std::string, bool, std::less<>> const VALID_BOOL = {
         {"true",  true },
         {"t",     true },
         {"yes",   true },
@@ -415,14 +384,15 @@ bool scanBoolString(StringT_ const &strVal, bool &result)
     return found != VALID_BOOL.end();
 }
 
-template <typename StringT_, typename std::enable_if<util::is_std_string_v<StringT_>>::type * = nullptr>
+template <typename StringT_>
 StringT_ substr_from_to_incl(StringT_ const &str, size_t start, size_t finish)
+requires(util::is_std_string_v<StringT_>)
 {
-    if (start > static_cast<size_t>(str.size()) || start > finish)
+    if (start > static_cast<size_t>(std::size(str)) || start > finish)
     {
         return StringT_{};
     }
-    if (finish > static_cast<size_t>(str.size()))
+    if (finish > static_cast<size_t>(std::size(str)))
     {
         finish = StringT_::npos;
     }
@@ -441,18 +411,16 @@ StringT_ substr_from_to_incl(StringT_ const &str, size_t start, size_t finish)
  * @param sep separator character
  * @return std::vector<std::basic_string<CharT_, TraitsT_>> a vector containing the separated sub-strings
  */
-template <
-    typename StringT_,
-    typename SeparatorT_,
-    typename std::enable_if<util::has_std_string_compatible_char_v<StringT_, SeparatorT_>>::type * = nullptr>
+template <typename StringT_, typename SeparatorT_>
 std::vector<StringT_> splitIntoVector(StringT_ const &str, SeparatorT_ sep)
+requires(util::has_std_string_compatible_char_v<StringT_, SeparatorT_>)
 {
     std::vector<StringT_>        results;
     typename StringT_::size_type subStrStart = 0UL;
     typename StringT_::size_type sepStart    = str.find(sep);
     typename StringT_::size_type sepLen      = util::string_or_char_size(sep);
 
-    if (sepLen == 0 || sepStart > str.size())
+    if (sepLen == 0 || sepStart > std::size(str))
     {
         // separator not found or empty so add the whole string to results and return
         results.emplace_back(str);
@@ -475,7 +443,7 @@ std::vector<StringT_> splitIntoVector(StringT_ const &str, SeparatorT_ sep)
         // start looking for another separator after this one
         subStrStart = sepStart + sepLen;
         sepStart    = str.find(sep, subStrStart);
-        if (sepStart > str.size())
+        if (sepStart > std::size(str))
         {
             finished = true;
             results.emplace_back(substr_from_to_incl(str, subStrStart, sepStart - 1));
@@ -492,20 +460,18 @@ std::vector<StringT_> splitIntoVector(StringT_ const &str, SeparatorT_ sep)
  * @tparam SeparatorT_ separator type, needs to be eithe CharT_ or string
  * @param str original string
  * @param sep separator character
- * @return std::set<StringT_> a set containing the separated sub-strings
+ * @return std::set<StringT_, std::less<>> a set containing the separated sub-strings
  */
-template <
-    typename StringT_,
-    typename SeparatorT_,
-    typename std::enable_if<util::has_std_string_compatible_char_v<StringT_, SeparatorT_>>::type * = nullptr>
-std::set<StringT_> splitIntoSet(StringT_ const &str, SeparatorT_ sep)
+template <typename StringT_, typename SeparatorT_>
+std::set<StringT_, std::less<>> splitIntoSet(StringT_ const &str, SeparatorT_ sep)
+requires(util::has_std_string_compatible_char_v<StringT_, SeparatorT_>)
 {
-    std::set<StringT_>           results;
-    typename StringT_::size_type subStrStart = 0UL;
-    typename StringT_::size_type sepStart    = str.find(sep);
-    typename StringT_::size_type sepLen      = util::string_or_char_size(sep);
+    std::set<StringT_, std::less<>> results;
+    typename StringT_::size_type    subStrStart = 0UL;
+    typename StringT_::size_type    sepStart    = str.find(sep);
+    typename StringT_::size_type    sepLen      = util::string_or_char_size(sep);
 
-    if (sepLen == 0 || sepStart > str.size())
+    if (sepLen == 0 || sepStart > std::size(str))
     {
         // separator not found or empty so add the whole string to results and return
         results.emplace(str);
@@ -528,7 +494,7 @@ std::set<StringT_> splitIntoSet(StringT_ const &str, SeparatorT_ sep)
         // start looking for another separator after this one
         subStrStart = sepStart + sepLen;
         sepStart    = str.find(sep, subStrStart);
-        if (sepStart > str.size())
+        if (sepStart > std::size(str))
         {
             finished = true;
             results.emplace(substr_from_to_incl(str, subStrStart, sepStart - 1));
@@ -549,42 +515,42 @@ std::set<StringT_> splitIntoSet(StringT_ const &str, SeparatorT_ sep)
  * @param str the string to classify
  * @return NumberClass INT, UINT or FLOAT if the string scans as integer, unsigned or float respectively, NONE otherwise
  */
-template <typename StringT_, typename std::enable_if<util::is_string_v<StringT_>>::type * = nullptr>
-NumberClass classifyNumberString(StringT_ const &str)
+template <typename StringT_>
+util::NumberClass classifyNumberString(StringT_ const &str)
+requires(util::is_std_string_v<StringT_>)
 {
-    static size_t maxIntLen  = toString(std::numeric_limits<int64_t>::max()).size();
-    static size_t maxUintLen = toString(std::numeric_limits<uint64_t>::max()).size();
+    static size_t maxIntLen  = std::size(util::toString(std::numeric_limits<int64_t>::max()));
+    static size_t maxUintLen = std::size(util::toString(std::numeric_limits<uint64_t>::max()));
 
-    if (str.empty() || str.find_first_not_of("0123456789+-.eElL") != StringT_::npos)
+    using enum util::NumberClass;
+    if (std::empty(str) || str.find_first_not_of("0123456789+-.eElL") != StringT_::npos)
     {
-        return (NumberClass::NONE);
+        return NONE;
     }
 
     if (str.find_first_of(".e") != StringT_::npos)
     {
-        return NumberClass::FLOAT;
+        return FLOAT;
     }
 
     bool isNegative = (str[0] == '-');
     bool isSigned   = (str[0] == '-' || str[0] == '+');
 
-    if (str.size() - (isSigned ? 1 : 0) > maxUintLen)
+    if (std::size(str) - (isSigned ? 1 : 0) > maxUintLen)
     {
-        return NumberClass::FLOAT;
+        return FLOAT;
     }
     else
     {
-        if (str.size() - (isSigned ? 1 : 0) >= maxIntLen)
+        if (std::size(str) - (isSigned ? 1 : 0) >= maxIntLen)
         {
-            return (isNegative ? NumberClass::FLOAT : NumberClass::UINT);
+            return (isNegative ? FLOAT : UINT);
         }
         else
         {
-            return (NumberClass::INT);
+            return INT;
         }
     }
-}
-
-}; // namespace util
+} // namespace util
 
 #endif // NS_UTIL_STRINGUTIL_H_INCLUDED

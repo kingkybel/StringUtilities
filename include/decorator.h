@@ -139,9 +139,7 @@ StringToT_ convert(StringFrom_ const &from)
     StringToT_ to;
 
     using char_type_from = typename util::is_std_string<StringFrom_>::char_type;
-    std::transform(std::begin(from), std::end(from), std::back_inserter(to), [](auto const &c) {
-        return static_cast<char_type_from>(c);
-    });
+    std::ranges::transform(from, std::back_inserter(to), [](auto const &c) { return static_cast<char_type_from>(c); });
 
     return to;
 }
@@ -153,9 +151,7 @@ std::basic_string<CharToT_> convert(StringFrom_ const &from)
     std::basic_string<CharToT_> to;
 
     using char_type_from = typename util::is_std_string<StringFrom_>::char_type;
-    std::transform(std::begin(from), std::end(from), std::back_inserter(to), [](auto const &c) {
-        return static_cast<char_type_from>(c);
-    });
+    std::ranges::transform(from, std::back_inserter(to), [](auto const &c) { return static_cast<char_type_from>(c); });
 
     return to;
 }
@@ -204,22 +200,23 @@ template <typename CharT_ = char> struct floatFmt
      *
      * @return const std::string a string describing the format
      */
-    std::string const toString() const
+    std::string toString() const
     {
         std::stringstream ss;
         ss << "floatFmt(";
+        using enum util::FloatBase;
         switch (base_)
         {
-            case FloatBase::default_format:
+            case default_format:
                 ss << "default_format";
                 break;
-            case FloatBase::scientific:
+            case scientific:
                 ss << "scientific";
                 break;
-            case FloatBase::hexfloat:
+            case hexfloat:
                 ss << "hexfloat";
                 break;
-            case FloatBase::fixed:
+            case fixed:
                 ss << "fixed";
                 break;
         }
@@ -278,7 +275,7 @@ template <typename CharT_ = char> struct intFmt
      *
      * @return const std::string a string describing the format
      */
-    std::string const toString() const
+    std::string toString() const
     {
         std::stringstream ss;
 
@@ -363,9 +360,9 @@ template <typename CharT_ = char, typename TraitsT_ = std::char_traits<CharT_>> 
     static decorator theInstance;
 
     // keys of maps are strings, not the output string type StringT_
-    using BracketMapType     = std::map<std::string, BracketsType>;
-    using IntFormatMapType   = std::map<std::string, intFmt<CharT_>>;
-    using FloatFormatMapType = std::map<std::string, floatFmt<CharT_>>;
+    using BracketMapType     = std::map<std::string, BracketsType, std::less<>>;
+    using IntFormatMapType   = std::map<std::string, intFmt<CharT_>, std::less<>>;
+    using FloatFormatMapType = std::map<std::string, floatFmt<CharT_>, std::less<>>;
 
     BracketMapType     type2brackets_;
     IntFormatMapType   intType2format_;
@@ -395,10 +392,10 @@ template <typename CharT_ = char, typename TraitsT_ = std::char_traits<CharT_>> 
         ss << "-- " << this << " --" << std::endl;
         ss << "CharT_:" << typeid(CharT_).name() << " TraitsT_:" << typeid(CharT_).name() << std::endl;
         ss << "---- brackets ------" << std::endl;
-        for (auto const &kv: type2brackets_)
+        for (auto const &[key, bracket]: type2brackets_)
         {
-            ss << kv.first << " -> ('" << convert<std::string>(kv.second.left()) << "', '"
-               << convert<std::string>(kv.second.inner()) << "', '" << convert<std::string>(kv.second.right()) << "')"
+            ss << key << " -> ('" << convert<std::string>(bracket.left()) << "', '"
+               << convert<std::string>(bracket.inner()) << "', '" << convert<std::string>(bracket.right()) << "')"
                << std::endl;
         }
         ss << "------ int --------" << std::endl;
@@ -1398,16 +1395,16 @@ void decorate(
     auto  bracket  = decoInst.getBracket(container, defaultBracketId);
     os << bracket.left();
 
-    if (!container.empty())
+    if (!std::empty(container))
     {
-        auto iter = container.begin();
+        auto iter = std::begin(container);
 
-        while (iter != container.end())
+        while (iter != std::end(container))
         {
             decorate(os, *iter);
             iter++;
 
-            if (iter != container.end())
+            if (iter != std::end(container))
             {
                 os << bracket.inner();
             }

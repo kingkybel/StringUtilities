@@ -34,10 +34,12 @@ class BracketsTest : public ::testing::Test
   protected:
     void SetUp() override
     {
+        // just in case
     }
 
     void TearDown() override
     {
+        // just in case
     }
 };
 

@@ -44,10 +44,12 @@ class StringUtilTest : public ::testing::Test
   protected:
     void SetUp() override
     {
+        // just in case
     }
 
     void TearDown() override
     {
+        // just in case
     }
 };
 
@@ -125,402 +127,144 @@ template <typename T_> struct TestExpect
 
 template <typename T_> void util_string_mod_testT()
 {
-    using TestExpect_T        = TestExpect<T_>;
-    TestExpect_T modResults[] = {
+    using TestExpect_T = TestExpect<T_>;
+    using enum StripTrimMode;
+    // clang-format off
+    vector<TestExpect_T> modResults = {
 
         // trivial
-        TestExpect_T("", "trim", StripTrimMode::ALL, "\n\t \r", char(0), "", std::source_location::current()),
-        TestExpect_T("", "trim", StripTrimMode::LEFT, "\n\t \r", char(0), "", std::source_location::current()),
-        TestExpect_T("", "trim", StripTrimMode::RIGHT, "\n\t \r", char(0), "", std::source_location::current()),
-        TestExpect_T(" ", "trim", StripTrimMode::ALL, "\n\t \r", char(0), "", std::source_location::current()),
-        TestExpect_T(" ", "trim", StripTrimMode::LEFT, "\n\t \r", char(0), "", std::source_location::current()),
-        TestExpect_T(" ", "trim", StripTrimMode::RIGHT, "\n\t \r", char(0), "", std::source_location::current()),
-        TestExpect_T("\t", "trim", StripTrimMode::ALL, "\n\t \r", char(0), "", std::source_location::current()),
-        TestExpect_T("\t", "trim", StripTrimMode::LEFT, "\n\t \r", char(0), "", std::source_location::current()),
-        TestExpect_T("\t", "trim", StripTrimMode::RIGHT, "\n\t \r", char(0), "", std::source_location::current()),
-        TestExpect_T("\n", "trim", StripTrimMode::ALL, "\n\t \r", char(0), "", std::source_location::current()),
-        TestExpect_T("\n", "trim", StripTrimMode::LEFT, "\n\t \r", char(0), "", std::source_location::current()),
-        TestExpect_T("\n", "trim", StripTrimMode::RIGHT, "\n\t \r", char(0), "", std::source_location::current()),
+        TestExpect_T(""           , "trim"   , ALL  , "\n\t \r", char(0), ""           , std::source_location::current()),
+        TestExpect_T(""           , "trim"   , LEFT , "\n\t \r", char(0), ""           , std::source_location::current()),
+        TestExpect_T(""           , "trim"   , RIGHT, "\n\t \r", char(0), ""           , std::source_location::current()),
+        TestExpect_T(" "          , "trim"   , ALL  , "\n\t \r", char(0), ""           , std::source_location::current()),
+        TestExpect_T(" "          , "trim"   , LEFT , "\n\t \r", char(0), ""           , std::source_location::current()),
+        TestExpect_T(" "          , "trim"   , RIGHT, "\n\t \r", char(0), ""           , std::source_location::current()),
+        TestExpect_T("\t"         , "trim"   , ALL  , "\n\t \r", char(0), ""           , std::source_location::current()),
+        TestExpect_T("\t"         , "trim"   , LEFT , "\n\t \r", char(0), ""           , std::source_location::current()),
+        TestExpect_T("\t"         , "trim"   , RIGHT, "\n\t \r", char(0), ""           , std::source_location::current()),
+        TestExpect_T("\n"         , "trim"   , ALL  , "\n\t \r", char(0), ""           , std::source_location::current()),
+        TestExpect_T("\n"         , "trim"   , LEFT , "\n\t \r", char(0), ""           , std::source_location::current()),
+        TestExpect_T("\n"         , "trim"   , RIGHT, "\n\t \r", char(0), ""           , std::source_location::current()),
 
-        TestExpect_T("", "strip", StripTrimMode::ALL, "\n\t \r", char(0), "", std::source_location::current()),
-        TestExpect_T("", "strip", StripTrimMode::LEFT, "\n\t \r", char(0), "", std::source_location::current()),
-        TestExpect_T("", "strip", StripTrimMode::RIGHT, "\n\t \r", char(0), "", std::source_location::current()),
-        TestExpect_T(" ", "strip", StripTrimMode::ALL, "\n\t \r", char(0), "", std::source_location::current()),
-        TestExpect_T(" ", "strip", StripTrimMode::LEFT, "\n\t \r", char(0), "", std::source_location::current()),
-        TestExpect_T(" ", "strip", StripTrimMode::RIGHT, "\n\t \r", char(0), "", std::source_location::current()),
-        TestExpect_T("\t", "strip", StripTrimMode::ALL, "\n\t \r", char(0), "", std::source_location::current()),
-        TestExpect_T("\t", "strip", StripTrimMode::LEFT, "\n\t \r", char(0), "", std::source_location::current()),
-        TestExpect_T("\t", "strip", StripTrimMode::RIGHT, "\n\t \r", char(0), "", std::source_location::current()),
-        TestExpect_T("\n", "strip", StripTrimMode::ALL, "\n\t \r", char(0), "", std::source_location::current()),
-        TestExpect_T("\n", "strip", StripTrimMode::LEFT, "\n\t \r", char(0), "", std::source_location::current()),
-        TestExpect_T("\n", "strip", StripTrimMode::RIGHT, "\n\t \r", char(0), "", std::source_location::current()),
+        TestExpect_T(""           , "strip"  , ALL  , "\n\t \r", char(0), ""           , std::source_location::current()),
+        TestExpect_T(""           , "strip"  , LEFT , "\n\t \r", char(0), ""           , std::source_location::current()),
+        TestExpect_T(""           , "strip"  , RIGHT, "\n\t \r", char(0), ""           , std::source_location::current()),
+        TestExpect_T(" "          , "strip"  , ALL  , "\n\t \r", char(0), ""           , std::source_location::current()),
+        TestExpect_T(" "          , "strip"  , LEFT , "\n\t \r", char(0), ""           , std::source_location::current()),
+        TestExpect_T(" "          , "strip"  , RIGHT, "\n\t \r", char(0), ""           , std::source_location::current()),
+        TestExpect_T("\t"         , "strip"  , ALL  , "\n\t \r", char(0), ""           , std::source_location::current()),
+        TestExpect_T("\t"         , "strip"  , LEFT , "\n\t \r", char(0), ""           , std::source_location::current()),
+        TestExpect_T("\t"         , "strip"  , RIGHT, "\n\t \r", char(0), ""           , std::source_location::current()),
+        TestExpect_T("\n"         , "strip"  , ALL  , "\n\t \r", char(0), ""           , std::source_location::current()),
+        TestExpect_T("\n"         , "strip"  , LEFT , "\n\t \r", char(0), ""           , std::source_location::current()),
+        TestExpect_T("\n"         , "strip"  , RIGHT, "\n\t \r", char(0), ""           , std::source_location::current()),
 
-        TestExpect_T("", "replace", StripTrimMode::ALL, "\n\t \r", '#', "", std::source_location::current()),
-        TestExpect_T("", "replace", StripTrimMode::LEFT, "\n\t \r", '#', "", std::source_location::current()),
-        TestExpect_T("", "replace", StripTrimMode::RIGHT, "\n\t \r", '#', "", std::source_location::current()),
-        TestExpect_T(" ", "replace", StripTrimMode::ALL, "\n\t \r", '#', "#", std::source_location::current(), false),
-        TestExpect_T(" ", "replace", StripTrimMode::LEFT, "\n\t \r", '#', "#", std::source_location::current()),
-        TestExpect_T(" ", "replace", StripTrimMode::RIGHT, "\n\t \r", '#', "#", std::source_location::current()),
-        TestExpect_T("\t", "replace", StripTrimMode::ALL, "\n\t \r", '#', "#", std::source_location::current()),
-        TestExpect_T("\t", "replace", StripTrimMode::LEFT, "\n\t \r", '#', "#", std::source_location::current()),
-        TestExpect_T("\t", "replace", StripTrimMode::RIGHT, "\n\t \r", '#', "#", std::source_location::current()),
-        TestExpect_T("\n", "replace", StripTrimMode::ALL, "\n\t \r", '#', "#", std::source_location::current()),
-        TestExpect_T("\n", "replace", StripTrimMode::LEFT, "\n\t \r", '#', "#", std::source_location::current()),
-        TestExpect_T("\n", "replace", StripTrimMode::RIGHT, "\n\t \r", '#', "#", std::source_location::current()),
+        TestExpect_T(""           , "replace", ALL  , "\n\t \r", '#'    , ""           , std::source_location::current()),
+        TestExpect_T(""           , "replace", LEFT , "\n\t \r", '#'    , ""           , std::source_location::current()),
+        TestExpect_T(""           , "replace", RIGHT, "\n\t \r", '#'    , ""           , std::source_location::current()),
+        TestExpect_T(" "          , "replace", ALL  , "\n\t \r", '#'    , "#"          , std::source_location::current(), false),
+        TestExpect_T(" "          , "replace", LEFT , "\n\t \r", '#'    , "#"          , std::source_location::current()),
+        TestExpect_T(" "          , "replace", RIGHT, "\n\t \r", '#'    , "#"          , std::source_location::current()),
+        TestExpect_T("\t"         , "replace", ALL  , "\n\t \r", '#'    , "#"          , std::source_location::current()),
+        TestExpect_T("\t"         , "replace", LEFT , "\n\t \r", '#'    , "#"          , std::source_location::current()),
+        TestExpect_T("\t"         , "replace", RIGHT, "\n\t \r", '#'    , "#"          , std::source_location::current()),
+        TestExpect_T("\n"         , "replace", ALL  , "\n\t \r", '#'    , "#"          , std::source_location::current()),
+        TestExpect_T("\n"         , "replace", LEFT , "\n\t \r", '#'    , "#"          , std::source_location::current()),
+        TestExpect_T("\n"         , "replace", RIGHT, "\n\t \r", '#'    , "#"          , std::source_location::current()),
 
         // trivial case-dependent
-        TestExpect_T("", "trim", StripTrimMode::ALL, "abc", char(0), "", std::source_location::current(), false, ""),
-        TestExpect_T("", "trim", StripTrimMode::LEFT, "abc", char(0), "", std::source_location::current(), false, ""),
-        TestExpect_T("", "trim", StripTrimMode::RIGHT, "abc", char(0), "", std::source_location::current(), false, ""),
-        TestExpect_T("a", "trim", StripTrimMode::ALL, "abc", char(0), "", std::source_location::current(), false, ""),
-        TestExpect_T("a", "trim", StripTrimMode::LEFT, "abc", char(0), "", std::source_location::current(), false, ""),
-        TestExpect_T("a", "trim", StripTrimMode::RIGHT, "abc", char(0), "", std::source_location::current(), false, ""),
-        TestExpect_T("b", "trim", StripTrimMode::ALL, "abc", char(0), "", std::source_location::current(), false, ""),
-        TestExpect_T("b", "trim", StripTrimMode::LEFT, "abc", char(0), "", std::source_location::current(), false, ""),
-        TestExpect_T("b", "trim", StripTrimMode::RIGHT, "abc", char(0), "", std::source_location::current(), false, ""),
-        TestExpect_T("c", "trim", StripTrimMode::ALL, "abc", char(0), "", std::source_location::current(), false, ""),
-        TestExpect_T("c", "trim", StripTrimMode::LEFT, "abc", char(0), "", std::source_location::current(), false, ""),
-        TestExpect_T("c", "trim", StripTrimMode::RIGHT, "abc", char(0), "", std::source_location::current(), false, ""),
-        TestExpect_T("A", "trim", StripTrimMode::ALL, "abc", char(0), "A", std::source_location::current(), true, ""),
-        TestExpect_T("A", "trim", StripTrimMode::LEFT, "abc", char(0), "A", std::source_location::current(), true, ""),
-        TestExpect_T("A", "trim", StripTrimMode::RIGHT, "abc", char(0), "A", std::source_location::current(), true, ""),
-        TestExpect_T("B", "trim", StripTrimMode::ALL, "abc", char(0), "B", std::source_location::current(), true, ""),
-        TestExpect_T("B", "trim", StripTrimMode::LEFT, "abc", char(0), "B", std::source_location::current(), true, ""),
-        TestExpect_T("B", "trim", StripTrimMode::RIGHT, "abc", char(0), "B", std::source_location::current(), true, ""),
-        TestExpect_T("C", "trim", StripTrimMode::ALL, "abc", char(0), "C", std::source_location::current(), true, ""),
-        TestExpect_T("C", "trim", StripTrimMode::LEFT, "abc", char(0), "C", std::source_location::current(), true, ""),
-        TestExpect_T("C", "trim", StripTrimMode::RIGHT, "abc", char(0), "C", std::source_location::current(), true, ""),
-        TestExpect_T("", "strip", StripTrimMode::ALL, "abc", char(0), "", std::source_location::current(), false, ""),
-        TestExpect_T("", "strip", StripTrimMode::LEFT, "abc", char(0), "", std::source_location::current(), false, ""),
-        TestExpect_T("", "strip", StripTrimMode::RIGHT, "abc", char(0), "", std::source_location::current(), false, ""),
-        TestExpect_T("a", "strip", StripTrimMode::ALL, "abc", char(0), "", std::source_location::current(), false, ""),
-        TestExpect_T("a", "strip", StripTrimMode::LEFT, "abc", char(0), "", std::source_location::current(), false, ""),
-        TestExpect_T("a", "strip", StripTrimMode::RIGHT, "abc", char(0), "", std::source_location::current(), ""),
-        TestExpect_T("b", "strip", StripTrimMode::ALL, "abc", char(0), "", std::source_location::current(), false, ""),
-        TestExpect_T("b", "strip", StripTrimMode::LEFT, "abc", char(0), "", std::source_location::current(), false, ""),
-        TestExpect_T(
-            "b",
-            "strip",
-            StripTrimMode::RIGHT,
-            "abc",
-            char(0),
-            "",
-            std::source_location::current(),
-            false,
-            ""
-        ),
-        TestExpect_T("c", "strip", StripTrimMode::ALL, "abc", char(0), "", std::source_location::current(), false, ""),
-        TestExpect_T("c", "strip", StripTrimMode::LEFT, "abc", char(0), "", std::source_location::current(), false, ""),
-        TestExpect_T(
-            "c",
-            "strip",
-            StripTrimMode::RIGHT,
-            "abc",
-            char(0),
-            "",
-            std::source_location::current(),
-            false,
-            ""
-        ),
-        TestExpect_T("A", "strip", StripTrimMode::ALL, "abc", char(0), "A", std::source_location::current(), true, ""),
-        TestExpect_T("A", "strip", StripTrimMode::LEFT, "abc", char(0), "A", std::source_location::current(), true, ""),
-        TestExpect_T(
-            "A",
-            "strip",
-            StripTrimMode::RIGHT,
-            "abc",
-            char(0),
-            "A",
-            std::source_location::current(),
-            true,
-            ""
-        ),
-        TestExpect_T("B", "strip", StripTrimMode::ALL, "abc", char(0), "B", std::source_location::current(), true, ""),
-        TestExpect_T("B", "strip", StripTrimMode::LEFT, "abc", char(0), "B", std::source_location::current(), true, ""),
-        TestExpect_T(
-            "B",
-            "strip",
-            StripTrimMode::RIGHT,
-            "abc",
-            char(0),
-            "B",
-            std::source_location::current(),
-            true,
-            ""
-        ),
-        TestExpect_T("C", "strip", StripTrimMode::ALL, "abc", char(0), "C", std::source_location::current(), true, ""),
-        TestExpect_T("C", "strip", StripTrimMode::LEFT, "abc", char(0), "C", std::source_location::current(), true, ""),
-        TestExpect_T(
-            "C",
-            "strip",
-            StripTrimMode::RIGHT,
-            "abc",
-            char(0),
-            "C",
-            std::source_location::current(),
-            true,
-            ""
-        ),
-        TestExpect_T("", "replace", StripTrimMode::ALL, "abc", '#', "", std::source_location::current(), false, ""),
-        TestExpect_T("", "replace", StripTrimMode::LEFT, "abc", '#', "", std::source_location::current(), false, ""),
-        TestExpect_T("", "replace", StripTrimMode::RIGHT, "abc", '#', "", std::source_location::current(), false, ""),
-        TestExpect_T("a", "replace", StripTrimMode::ALL, "abc", '#', "#", std::source_location::current(), false, "#"),
-        TestExpect_T("a", "replace", StripTrimMode::LEFT, "abc", '#', "#", std::source_location::current(), false, "#"),
-        TestExpect_T(
-            "a",
-            "replace",
-            StripTrimMode::RIGHT,
-            "abc",
-            '#',
-            "#",
-            std::source_location::current(),
-            false,
-            "#"
-        ),
-        TestExpect_T("b", "replace", StripTrimMode::ALL, "abc", '#', "#", std::source_location::current(), false, "#"),
-        TestExpect_T("b", "replace", StripTrimMode::LEFT, "abc", '#', "#", std::source_location::current(), false, "#"),
-        TestExpect_T(
-            "b",
-            "replace",
-            StripTrimMode::RIGHT,
-            "abc",
-            '#',
-            "#",
-            std::source_location::current(),
-            false,
-            "#"
-        ),
-        TestExpect_T("c", "replace", StripTrimMode::ALL, "abc", '#', "#", std::source_location::current(), false, "#"),
-        TestExpect_T("c", "replace", StripTrimMode::LEFT, "abc", '#', "#", std::source_location::current(), false, "#"),
-        TestExpect_T(
-            "c",
-            "replace",
-            StripTrimMode::RIGHT,
-            "abc",
-            '#',
-            "#",
-            std::source_location::current(),
-            false,
-            "#"
-        ),
-        TestExpect_T("A", "replace", StripTrimMode::ALL, "abc", '#', "A", std::source_location::current(), true, "#"),
-        TestExpect_T("A", "replace", StripTrimMode::LEFT, "abc", '#', "A", std::source_location::current(), true, "#"),
-        TestExpect_T("A", "replace", StripTrimMode::RIGHT, "abc", '#', "A", std::source_location::current(), true, "#"),
-        TestExpect_T("B", "replace", StripTrimMode::ALL, "abc", '#', "B", std::source_location::current(), true, "#"),
-        TestExpect_T("B", "replace", StripTrimMode::LEFT, "abc", '#', "B", std::source_location::current(), true, "#"),
-        TestExpect_T("B", "replace", StripTrimMode::RIGHT, "abc", '#', "B", std::source_location::current(), true, "#"),
-        TestExpect_T("C", "replace", StripTrimMode::ALL, "abc", '#', "C", std::source_location::current(), true, "#"),
-        TestExpect_T("C", "replace", StripTrimMode::LEFT, "abc", '#', "C", std::source_location::current(), true, "#"),
-        TestExpect_T(
-            "C",
-            "replace",
-            StripTrimMode::RIGHT,
-            "abc",
-            '#',
-            "C",
-            std::source_location::current(),
-            true,
-            "#"
-        ), // not-so-trivial case-dependent
-        TestExpect_T(
-            "aABbCc",
-            "trim",
-            StripTrimMode::ALL,
-            "abc",
-            char(0),
-            "ABbC",
-            std::source_location::current(),
-            true,
-            ""
-        ), /**/
-        TestExpect_T(
-            "aABbCc",
-            "trim",
-            StripTrimMode::LEFT,
-            "abc",
-            char(0),
-            "ABbCc",
-            std::source_location::current(),
-            true,
-            ""
-        ),
-        TestExpect_T(
-            "aABbCc",
-            "trim",
-            StripTrimMode::RIGHT,
-            "abc",
-            char(0),
-            "aABbC",
-            std::source_location::current(),
-            true,
-            ""
-        ),
-        TestExpect_T(
-            "aABbCc",
-            "strip",
-            StripTrimMode::ALL,
-            "abc",
-            char(0),
-            "ABC",
-            std::source_location::current(),
-            true,
-            ""
-        ),
-        TestExpect_T(
-            "aABbCc",
-            "strip",
-            StripTrimMode::LEFT,
-            "abc",
-            char(0),
-            "ABbCc",
-            std::source_location::current(),
-            true,
-            ""
-        ),
-        TestExpect_T(
-            "aABbCc",
-            "strip",
-            StripTrimMode::RIGHT,
-            "abc",
-            char(0),
-            "aABbC",
-            std::source_location::current(),
-            true,
-            ""
-        ),
-        TestExpect_T(
-            "aABbCc",
-            "replace",
-            StripTrimMode::ALL,
-            "abc",
-            '#',
-            "#AB#C#",
-            std::source_location::current(),
-            true,
-            "######"
-        ),
-        TestExpect_T(
-            "aABbCc",
-            "replace",
-            StripTrimMode::LEFT,
-            "abc",
-            '#',
-            "#ABbCc",
-            std::source_location::current(),
-            true,
-            "######"
-        ),
-        TestExpect_T(
-            "aABbCc",
-            "replace",
-            StripTrimMode::RIGHT,
-            "abc",
-            '#',
-            "aABbC#",
-            std::source_location::current(),
-            true,
-            "######"
-        ),
-        TestExpect_T(
-            "a-A-B-b-c-C",
-            "trim",
-            StripTrimMode::ALL,
-            "abc",
-            char(0),
-            "-A-B-b-c-C",
-            std::source_location::current(),
-            true,
-            "-A-B-b-c-"
-        ), /**/
-        TestExpect_T(
-            "a-A-B-b-c-C",
-            "trim",
-            StripTrimMode::LEFT,
-            "abc",
-            char(0),
-            "-A-B-b-c-C",
-            std::source_location::current(),
-            true,
-            "-A-B-b-c-C"
-        ),
-        TestExpect_T(
-            "a-A-B-b-c-C",
-            "trim",
-            StripTrimMode::RIGHT,
-            "abc",
-            char(0),
-            "a-A-B-b-c-C",
-            std::source_location::current(),
-            true,
-            "a-A-B-b-c-"
-        ),
-        TestExpect_T(
-            "a-A-B-b-c-C",
-            "strip",
-            StripTrimMode::ALL,
-            "abc",
-            char(0),
-            "-A-B---C",
-            std::source_location::current(),
-            true,
-            "-----"
-        ),
-        TestExpect_T(
-            "a-A-B-b-c-C",
-            "strip",
-            StripTrimMode::LEFT,
-            "abc",
-            char(0),
-            "-A-B-b-c-C",
-            std::source_location::current(),
-            true,
-            "-A-B-b-c-C"
-        ),
-        TestExpect_T(
-            "a-A-B-b-c-C",
-            "strip",
-            StripTrimMode::RIGHT,
-            "abc",
-            char(0),
-            "a-A-B-b-c-C",
-            std::source_location::current(),
-            true,
-            "a-A-B-b-c-"
-        ),
-        TestExpect_T(
-            "a-A-B-b-c-C",
-            "replace",
-            StripTrimMode::ALL,
-            "abc",
-            '#',
-            "#-A-B-#-#-C",
-            std::source_location::current(),
-            true,
-            "#-#-#-#-#-#"
-        ),
-        TestExpect_T(
-            "a-A-B-b-c-C",
-            "replace",
-            StripTrimMode::LEFT,
-            "abc",
-            '#',
-            "#-A-B-b-c-C",
-            std::source_location::current(),
-            true,
-            "#-A-B-b-c-C"
-        ),
-        TestExpect_T(
-            "a-A-B-b-c-C",
-            "replace",
-            StripTrimMode::RIGHT,
-            "abc",
-            '#',
-            "a-A-B-b-c-C",
-            std::source_location::current(),
-            true,
-            "a-A-B-b-c-#"
-        ),
+        TestExpect_T(""           , "trim"   , ALL  , "abc"    , char(0), ""           , std::source_location::current(), false, ""),
+        TestExpect_T(""           , "trim"   , LEFT , "abc"    , char(0), ""           , std::source_location::current(), false, ""),
+        TestExpect_T(""           , "trim"   , RIGHT, "abc"    , char(0), ""           , std::source_location::current(), false, ""),
+        TestExpect_T("a"          , "trim"   , ALL  , "abc"    , char(0), ""           , std::source_location::current(), false, ""),
+        TestExpect_T("a"          , "trim"   , LEFT , "abc"    , char(0), ""           , std::source_location::current(), false, ""),
+        TestExpect_T("a"          , "trim"   , RIGHT, "abc"    , char(0), ""           , std::source_location::current(), false, ""),
+        TestExpect_T("b"          , "trim"   , ALL  , "abc"    , char(0), ""           , std::source_location::current(), false, ""),
+        TestExpect_T("b"          , "trim"   , LEFT , "abc"    , char(0), ""           , std::source_location::current(), false, ""),
+        TestExpect_T("b"          , "trim"   , RIGHT, "abc"    , char(0), ""           , std::source_location::current(), false, ""),
+        TestExpect_T("c"          , "trim"   , ALL  , "abc"    , char(0), ""           , std::source_location::current(), false, ""),
+        TestExpect_T("c"          , "trim"   , LEFT , "abc"    , char(0), ""           , std::source_location::current(), false, ""),
+        TestExpect_T("c"          , "trim"   , RIGHT, "abc"    , char(0), ""           , std::source_location::current(), false, ""),
+        TestExpect_T("A"          , "trim"   , ALL  , "abc"    , char(0), "A"          , std::source_location::current(), true , ""),
+        TestExpect_T("A"          , "trim"   , LEFT , "abc"    , char(0), "A"          , std::source_location::current(), true , ""),
+        TestExpect_T("A"          , "trim"   , RIGHT, "abc"    , char(0), "A"          , std::source_location::current(), true , ""),
+        TestExpect_T("B"          , "trim"   , ALL  , "abc"    , char(0), "B"          , std::source_location::current(), true , ""),
+        TestExpect_T("B"          , "trim"   , LEFT , "abc"    , char(0), "B"          , std::source_location::current(), true , ""),
+        TestExpect_T("B"          , "trim"   , RIGHT, "abc"    , char(0), "B"          , std::source_location::current(), true , ""),
+        TestExpect_T("C"          , "trim"   , ALL  , "abc"    , char(0), "C"          , std::source_location::current(), true , ""),
+        TestExpect_T("C"          , "trim"   , LEFT , "abc"    , char(0), "C"          , std::source_location::current(), true , ""),
+        TestExpect_T("C"          , "trim"   , RIGHT, "abc"    , char(0), "C"          , std::source_location::current(), true , ""),
+
+        TestExpect_T(""           , "strip"  , ALL  , "abc"    , char(0), ""           , std::source_location::current(), false, ""),
+        TestExpect_T(""           , "strip"  , LEFT , "abc"    , char(0), ""           , std::source_location::current(), false, ""),
+        TestExpect_T(""           , "strip"  , RIGHT, "abc"    , char(0), ""           , std::source_location::current(), false, ""),
+        TestExpect_T("a"          , "strip"  , ALL  , "abc"    , char(0), ""           , std::source_location::current(), false, ""),
+        TestExpect_T("a"          , "strip"  , LEFT , "abc"    , char(0), ""           , std::source_location::current(), false, ""),
+        TestExpect_T("a"          , "strip"  , RIGHT, "abc"    , char(0), ""           , std::source_location::current(), ""),
+        TestExpect_T("b"          , "strip"  , ALL  , "abc"    , char(0), ""           , std::source_location::current(), false, ""),
+        TestExpect_T("b"          , "strip"  , LEFT , "abc"    , char(0), ""           , std::source_location::current(), false, ""),
+        TestExpect_T("b"          , "strip"  , RIGHT, "abc"    , char(0), ""           , std::source_location::current(), false, ""),
+        TestExpect_T("c"          , "strip"  , ALL  , "abc"    , char(0), ""           , std::source_location::current(), false, ""),
+        TestExpect_T("c"          , "strip"  , LEFT , "abc"    , char(0), ""           , std::source_location::current(), false, ""),
+        TestExpect_T("c"          , "strip"  , RIGHT, "abc"    , char(0), ""           , std::source_location::current(), false, ""),
+        TestExpect_T("A"          , "strip"  , ALL  , "abc"    , char(0), "A"          , std::source_location::current(), true , ""),
+        TestExpect_T("A"          , "strip"  , LEFT , "abc"    , char(0), "A"          , std::source_location::current(), true , ""),
+        TestExpect_T("A"          , "strip"  , RIGHT, "abc"    , char(0), "A"          , std::source_location::current(), true , ""),
+        TestExpect_T("B"          , "strip"  , ALL  , "abc"    , char(0), "B"          , std::source_location::current(), true , ""),
+        TestExpect_T("B"          , "strip"  , LEFT , "abc"    , char(0), "B"          , std::source_location::current(), true , ""),
+        TestExpect_T("B"          , "strip"  , RIGHT, "abc"    , char(0), "B"          , std::source_location::current(), true , ""),
+        TestExpect_T("C"          , "strip"  , ALL  , "abc"    , char(0), "C"          , std::source_location::current(), true , ""),
+        TestExpect_T("C"          , "strip"  , LEFT , "abc"    , char(0), "C"          , std::source_location::current(), true , ""),
+        TestExpect_T("C"          , "strip"  , RIGHT, "abc"    , char(0), "C"          , std::source_location::current(), true , ""),
+
+        TestExpect_T(""           , "replace", ALL  , "abc"    , '#'    , ""           , std::source_location::current(), false, ""),
+        TestExpect_T(""           , "replace", LEFT , "abc"    , '#'    , ""           , std::source_location::current(), false, ""),
+        TestExpect_T(""           , "replace", RIGHT, "abc"    , '#'    , ""           , std::source_location::current(), false, ""),
+        TestExpect_T("a"          , "replace", ALL  , "abc"    , '#'    , "#"          , std::source_location::current(), false, "#"),
+        TestExpect_T("a"          , "replace", LEFT , "abc"    , '#'    , "#"          , std::source_location::current(), false, "#"),
+        TestExpect_T("a"          , "replace", RIGHT, "abc"    , '#'    , "#"          , std::source_location::current(), false, "#"),
+        TestExpect_T("b"          , "replace", ALL  , "abc"    , '#'    , "#"          , std::source_location::current(), false, "#"),
+        TestExpect_T("b"          , "replace", LEFT , "abc"    , '#'    , "#"          , std::source_location::current(), false, "#"),
+        TestExpect_T("b"          , "replace", RIGHT, "abc"    , '#'    , "#"          , std::source_location::current(), false, "#"),
+        TestExpect_T("c"          , "replace", ALL  , "abc"    , '#'    , "#"          , std::source_location::current(), false, "#"),
+        TestExpect_T("c"          , "replace", LEFT , "abc"    , '#'    , "#"          , std::source_location::current(), false, "#"),
+        TestExpect_T("c"          , "replace", RIGHT, "abc"    , '#'    , "#"          , std::source_location::current(), false, "#"),
+        TestExpect_T("A"          , "replace", ALL  , "abc"    , '#'    , "A"          , std::source_location::current(), true , "#"),
+        TestExpect_T("A"          , "replace", LEFT , "abc"    , '#'    , "A"          , std::source_location::current(), true , "#"),
+        TestExpect_T("A"          , "replace", RIGHT, "abc"    , '#'    , "A"          , std::source_location::current(), true , "#"),
+        TestExpect_T("B"          , "replace", ALL  , "abc"    , '#'    , "B"          , std::source_location::current(), true , "#"),
+        TestExpect_T("B"          , "replace", LEFT , "abc"    , '#'    , "B"          , std::source_location::current(), true , "#"),
+        TestExpect_T("B"          , "replace", RIGHT, "abc"    , '#'    , "B"          , std::source_location::current(), true , "#"),
+        TestExpect_T("C"          , "replace", ALL  , "abc"    , '#'    , "C"          , std::source_location::current(), true , "#"),
+        TestExpect_T("C"          , "replace", LEFT , "abc"    , '#'    , "C"          , std::source_location::current(), true , "#"),
+        TestExpect_T("C"          , "replace", RIGHT, "abc"    , '#'    , "C"          , std::source_location::current(), true , "#"),
+        
+        // not-so-trivial case-dependent
+        TestExpect_T("aABbCc"     , "trim"   , ALL  , "abc"    , char(0), "ABbC"       , std::source_location::current(), true , ""), /**/
+        TestExpect_T("aABbCc"     , "trim"   , LEFT , "abc"    , char(0), "ABbCc"      , std::source_location::current(), true , ""),
+        TestExpect_T("aABbCc"     , "trim"   , RIGHT, "abc"    , char(0), "aABbC"      , std::source_location::current(), true , ""),
+
+        TestExpect_T("aABbCc"     , "strip"  , ALL  , "abc"    , char(0), "ABC"        , std::source_location::current(), true , ""),
+        TestExpect_T("aABbCc"     , "strip"  , LEFT , "abc"    , char(0), "ABbCc"      , std::source_location::current(), true , ""),
+        TestExpect_T("aABbCc"     , "strip"  , RIGHT, "abc"    , char(0), "aABbC"      , std::source_location::current(), true , ""),
+
+        TestExpect_T("aABbCc"     , "replace", ALL  , "abc"    , '#'    , "#AB#C#"     , std::source_location::current(), true , "######"),
+        TestExpect_T("aABbCc"     , "replace", LEFT , "abc"    , '#'    , "#ABbCc"     , std::source_location::current(), true , "######"),
+        TestExpect_T("aABbCc"     , "replace", RIGHT, "abc"    , '#'    , "aABbC#"     , std::source_location::current(), true , "######"),
+        TestExpect_T("a-A-B-b-c-C", "trim"   , ALL  , "abc"    , char(0), "-A-B-b-c-C" , std::source_location::current(), true , "-A-B-b-c-"),
+        
+        TestExpect_T("a-A-B-b-c-C", "trim"   , LEFT , "abc"    , char(0), "-A-B-b-c-C" , std::source_location::current(), true , "-A-B-b-c-C"),
+        TestExpect_T("a-A-B-b-c-C", "trim"   , RIGHT, "abc"    , char(0), "a-A-B-b-c-C", std::source_location::current(), true , "a-A-B-b-c-"),
+
+        TestExpect_T("a-A-B-b-c-C", "strip"  , ALL  , "abc"    , char(0), "-A-B---C"   , std::source_location::current(), true , "-----"),
+        TestExpect_T("a-A-B-b-c-C", "strip"  , LEFT , "abc"    , char(0), "-A-B-b-c-C" , std::source_location::current(), true , "-A-B-b-c-C"),
+        TestExpect_T("a-A-B-b-c-C", "strip"  , RIGHT, "abc"    , char(0), "a-A-B-b-c-C", std::source_location::current(), true , "a-A-B-b-c-"),
+
+        TestExpect_T("a-A-B-b-c-C", "replace", ALL  , "abc"    , '#'    , "#-A-B-#-#-C", std::source_location::current(), true , "#-#-#-#-#-#"),
+        TestExpect_T("a-A-B-b-c-C", "replace", LEFT , "abc"    , '#'    , "#-A-B-b-c-C", std::source_location::current(), true , "#-A-B-b-c-C"),
+        TestExpect_T("a-A-B-b-c-C", "replace", RIGHT, "abc"    , '#'    , "a-A-B-b-c-C", std::source_location::current(), true , "a-A-B-b-c-#"),
     };
+    // clang-format on
     for (size_t i = 0; i < std::size(modResults); ++i)
     {
         ASSERT_TRUE(modResults[i].correctResult());
@@ -570,15 +314,15 @@ TEST_F(StringUtilTest, util_ci_traits_test)
 
 TEST_F(StringUtilTest, util_container_conversion_test)
 {
-    set<string> sSet;
+    set<string, less<>> sSet;
     ASSERT_TRUE(sSet.empty());
     vector<string> sVec = toVector(sSet);
     ASSERT_TRUE(sVec.empty());
     sSet = toSet(sVec);
     ASSERT_TRUE(sSet.empty());
 
-    sSet.insert("1stString");
-    sSet.insert("2ndString");
+    sSet.emplace("1stString");
+    sSet.emplace("2ndString");
     ASSERT_TRUE(!sSet.empty());
     ASSERT_EQ(sSet.size(), 2UL);
     sVec = toVector(sSet);
@@ -680,7 +424,7 @@ template <typename T_> void util_string_testT()
 
     source = "123/456/789/123/789";
     // ("split " + source + " into set by '/'");
-    set<T_> resultSet = splitIntoSet(source, '/');
+    set<T_, less<>> resultSet = splitIntoSet(source, '/');
     ASSERT_EQ(resultSet.size(), 3UL);
     result = toVector(resultSet);
     ASSERT_EQ(result.size(), 3UL);
@@ -844,7 +588,7 @@ template <typename T_> void util_string_left_right_testT()
 
     source = "123/456/789/123/789";
     // ("split " + source + " into set by '/'");
-    set<T_> resultSet = splitIntoSet(source, '/');
+    set<T_, less<>> resultSet = splitIntoSet(source, '/');
     ASSERT_EQ(resultSet.size(), 3UL);
     result = toVector(resultSet);
     ASSERT_EQ(result.size(), 3UL);
@@ -947,7 +691,7 @@ TEST_F(StringUtilTest, util_ci_string_test)
     ASSERT_EQ(result[2], ci_string(""));
 
     source                   = "xxxAXxXbxXxC";
-    set<ci_string> resultSet = splitIntoSet(source, ci_string("xxx"));
+    set<ci_string, less<>> resultSet = splitIntoSet(source, ci_string("xxx"));
     ASSERT_EQ(resultSet.size(), 4UL);
     ASSERT_NE(resultSet.find(""), resultSet.end());
     ASSERT_NE(resultSet.find("a"), resultSet.end());
