@@ -279,7 +279,7 @@ jobs:
     - name: Upload coverage artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: unit-test-coverage-report
+        name: ${{ github.event.repository.name }}-unit-test-coverage-report
         path: |
           coverage.filtered.info
           coverage-summary.txt
@@ -289,7 +289,7 @@ jobs:
     - name: Upload HTML coverage report
       uses: actions/upload-artifact@v4
       with:
-        name: coverage-html-report
+        name: ${{ github.event.repository.name }}-coverage-html-report
         path: coverage-html/
         if-no-files-found: error
 
@@ -407,7 +407,7 @@ jobs:
           build-wrapper-linux-x86-64 --out-dir bw-output cmake --build "${{env.BUILD_DIR}}" --parallel
 
       - name: Sonar scan
-        uses: SonarSource/sonarqube-scan-action@v5
+        uses: SonarSource/sonarqube-scan-action@v6
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
