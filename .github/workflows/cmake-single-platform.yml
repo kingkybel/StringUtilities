@@ -81,6 +81,9 @@ jobs:
           ./b2 install -j $(nproc) --quiet || { echo "Boost build failed"; exit 1; }
           sudo cp --force --recursive ~/boost/* /usr
         fi
+        
+    - name: Update Submodules
+      run: git submodule update --init --recursive
 
     - name: Install DebugTrace
       run: |
